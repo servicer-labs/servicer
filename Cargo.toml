@@ -9,5 +9,7 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.3.19", features = ["derive"] }
+dbus-strings = "0.1.0"
 indoc = "2.0.3"
 which = "4.4.0"
+zbus = "3.14.1"
