@@ -95,7 +95,16 @@ pub fn handle_start(
             .expect(&format!("Failed to start service {}", full_service_name));
         println!("start service result {start_service_result}");
     } else {
+        // Custom interpreter is ignored when starting a new service
+        println!("starting existing service");
         // Start an existing service
+        let manager_proxy = ManagerProxyBlocking::new(&connection).unwrap();
+
+        let start_service_result = manager_proxy
+            .start_unit(full_service_name.clone(), "replace".into())
+            .expect(&format!("Failed to start service {}", full_service_name));
+
+        println!("start service result {start_service_result}");
     }
 
     Ok(())

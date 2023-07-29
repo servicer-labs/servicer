@@ -17,20 +17,23 @@ struct Args {
 
 #[derive(Debug, Subcommand)]
 pub enum Commands {
-    /// Daemonize an app at a given path or start an existing service
+    /// Create a systemd service for an app at a file path. If the input is a service name,
+    /// try to start the service.
     #[command(arg_required_else_help = true)]
     Start {
-        /// The file path or service to start
+        /// The file path or name of the service to start
         path_or_service: String,
 
-        /// Optional custom name for the daemon
+        /// Optional custom name for the service
         #[arg(short, long)]
         name: Option<String>,
 
-        /// Optional custom interpreter. By default `node` is used for .js and `python3` for .py
+        /// Optional custom interpreter. Input can be the executable's name, eg `python3` or the full path
+        /// `usr/bin/3`. If no input is provided stabled will use the file extension to detect the interpreter.
         #[arg(short, long)]
         interpreter: Option<String>,
 
+        /// Force start a service, overriding another service with the same name. Default false.
         #[arg(short, long, default_value_t = false)]
         force: bool,
     },
@@ -38,10 +41,6 @@ pub enum Commands {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
-
-    // TODO exit if systemd is not installed
-
-    // TODO exit if not linux
 
     match args.command {
         Commands::Start {
@@ -51,7 +50,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             force,
         } => handle_start(path_or_service, custom_name, custom_interpreter, force).unwrap(),
     }
-    println!("ok");
 
     Ok(())
 }
