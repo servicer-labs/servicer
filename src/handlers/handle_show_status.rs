@@ -1,6 +1,11 @@
-use crate::{TOOL_NAME, systemd::{get_unit_file_state, get_active_state, get_main_pid}};
+use crate::{
+    systemd::{get_active_state, get_main_pid, get_unit_file_state},
+    TOOL_NAME,
+};
+use bytesize::ByteSize;
+use cli_table::{Table, WithTitle};
+use psutil::process::Process;
 use std::{fs, path::Path};
-use cli_table::{format::Justify, Table, WithTitle};
 
 #[derive(Table)]
 struct ServiceStatus {
@@ -13,34 +18,54 @@ struct ServiceStatus {
     /// Active state
     active: bool,
 
-    // /// Load the service on boot
+    /// Load the service on boot
+    #[table(title = "enable on boot")]
     enabled_on_boot: bool,
 
-    // /// CPU usage. Formatted string in %
-    // cpu: String,
+    /// CPU usage. Formatted string in %
+    #[table(title = "cpu %")]
+    cpu: f32,
 
-    // /// RAM usage. Formatted string with MB, KB and other units
-    // mem: String
+    /// RAM usage. Formatted string with MB, KB and other units
+    memory: String,
 }
 
+/// Display the status of your services
 pub fn handle_show_status() -> Result<(), Box<dyn std::error::Error>> {
     let connection = zbus::blocking::Connection::system().unwrap();
     let stabled_service_names = get_stabled_services();
 
-    let service_statuses: Vec<ServiceStatus> = stabled_service_names.into_iter()
+    // TODO consider async to parallelize reads
+    let service_statuses: Vec<ServiceStatus> = stabled_service_names
+        .into_iter()
         .map(|name| {
             let active = get_active_state(&connection, &name) == "active";
             let enabled_on_boot = get_unit_file_state(&connection, &name) == "enabled";
-            let (pid) = if active {
-                (get_main_pid(&connection, &name).unwrap())
+            let (pid, cpu, memory) = if active {
+                let pid = get_main_pid(&connection, &name).unwrap();
+
+                // cpu_percent() must be called twice to find CPU usage
+                // TODO optimize by writing in a non-blocking fashion
+                let mut process = Process::new(pid).unwrap();
+                process.cpu_percent().unwrap();
+                std::thread::sleep(std::time::Duration::from_millis(200));
+                let cpu = process.cpu_percent().unwrap();
+
+                let memory_info = process.memory_info().unwrap();
+
+                // Formula used by Ubuntu task manager
+                let memory = memory_info.rss() - memory_info.shared();
+                (pid, cpu, ByteSize(memory).to_string())
             } else {
-                (0)
+                (0, 0f32, "0".to_string())
             };
             ServiceStatus {
                 pid,
-                name,
+                name: get_short_service_name(&name).to_string(),
                 active,
                 enabled_on_boot,
+                cpu,
+                memory,
             }
         })
         .collect();
@@ -50,6 +75,7 @@ pub fn handle_show_status() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+/// Get systemd services having an extension `.stabled.service`. We only monitor services created by this tool
 fn get_stabled_services() -> Vec<String> {
     let folder_path = "/etc/systemd/system/";
     let file_extension = format!(".{TOOL_NAME}.service");
@@ -81,5 +107,14 @@ fn get_stabled_services() -> Vec<String> {
     Vec::new()
 }
 
-fn print_table() {
+/// Shortens the service name from `example.stabled.service` to `example`
+///
+/// # Arguments
+///
+/// * `full_service_name`
+///
+fn get_short_service_name(full_service_name: &str) -> &str {
+    let file_extension = format!(".{TOOL_NAME}.service");
+
+    full_service_name.trim_end_matches(file_extension.as_str())
 }

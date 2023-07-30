@@ -147,7 +147,10 @@ pub fn get_unit_file_state(connection: &Connection, full_service_name: &String) 
 /// * `connection`: Blocking zbus connection
 /// * `full_service_name`: Full name of the service name with '.service' in the end
 ///
-pub fn get_main_pid(connection: &Connection, full_service_name: &String) -> Result<u32, zbus::Error> {
+pub fn get_main_pid(
+    connection: &Connection,
+    full_service_name: &String,
+) -> Result<u32, zbus::Error> {
     let object_path = format!(
         "/org/freedesktop/systemd1/unit/{}",
         encode_as_dbus_object_path(full_service_name)
@@ -156,8 +159,7 @@ pub fn get_main_pid(connection: &Connection, full_service_name: &String) -> Resu
     let validated_object_path = zbus::zvariant::ObjectPath::try_from(object_path).unwrap();
 
     let service_proxy = ServiceProxyBlocking::new(connection, validated_object_path).unwrap();
-    service_proxy
-        .main_pid()
+    service_proxy.main_pid()
 }
 
 /// Encode into a valid dbus string

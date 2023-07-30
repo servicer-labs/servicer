@@ -13,3 +13,6 @@ cli-table = "0.4.7"
 indoc = "2.0.3"
 which = "4.4.0"
 zbus = "3.14.1"
+psutil = { git = "https://github.com/servicer-labs/rust-psutil", default-features = false, features = ["process"] }
+bytesize = "1.2.0"
+
