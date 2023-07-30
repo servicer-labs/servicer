@@ -48,8 +48,7 @@ pub fn handle_create_service(
     let service_file_path = format!("/etc/systemd/system/{}", full_service_name.clone());
 
     if Path::new(&service_file_path).exists() {
-        eprintln!("A service named {service_name} exists at {service_file_path}");
-        eprintln!("Provide a custom name with --name or delete the existing service with `{TOOL_NAME} delete {service_name}`");
+        panic!("Service {service_name} already exists at {service_file_path}. Provide a custom name with --name or delete the existing service with `{TOOL_NAME} delete {service_name}");
     } else {
         let interpreter = match custom_interpreter {
             Some(_) => custom_interpreter,
@@ -71,8 +70,7 @@ pub fn handle_create_service(
         )
         .unwrap();
 
-        println!("Service {service_name} created at {service_file_path}");
-        println!("To start the service run `{TOOL_NAME} start {service_name}`");
+        println!("Service {service_name} created at {service_file_path}. To start run `{TOOL_NAME} start {service_name}`");
     }
 
     Ok(())
