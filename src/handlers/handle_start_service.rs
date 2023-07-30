@@ -24,11 +24,11 @@ pub fn handle_start_service(
         format!("{name}{service_extension}")
     };
 
-    let active_state = get_active_state(&full_name, &connection);
+    let active_state = get_active_state(&connection, &full_name);
 
     if active_state == "active" || active_state == "reloading" {
         if enable_on_boot {
-            let unit_file_state = get_unit_file_state(&full_name, &connection);
+            let unit_file_state = get_unit_file_state(&connection, &full_name);
             if unit_file_state == "enabled" {
                 eprintln!(
                     "No-op. Service {full_name} is already {active_state} and {unit_file_state}"

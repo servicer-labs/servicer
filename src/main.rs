@@ -5,6 +5,7 @@ mod systemd;
 
 use crate::handlers::handle_create_service::handle_create_service;
 use crate::handlers::handle_start_service::handle_start_service;
+use crate::handlers::handle_show_status::handle_show_status;
 
 pub const TOOL_NAME: &str = "stabled";
 
@@ -44,6 +45,11 @@ pub enum Commands {
         #[arg(short, long)]
         enable_on_boot: bool,
     },
+
+    /// View status of stabled services
+    #[command()]
+    Status {
+    },
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -60,6 +66,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             name,
             enable_on_boot,
         } => handle_start_service(name, enable_on_boot).unwrap(),
+
+        Commands::Status {  } => handle_show_status().unwrap()
     }
 
     Ok(())

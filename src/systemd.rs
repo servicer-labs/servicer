@@ -48,16 +48,29 @@ pub trait Unit {
     fn unit_file_state(&self) -> zbus::Result<String>;
 }
 
+/// Proxy object for `org.freedesktop.systemd1.Service`.
+/// Taken from https://github.com/lucab/zbus_systemd/blob/main/src/systemd1/generated.rs
+#[dbus_proxy(
+    interface = "org.freedesktop.systemd1.Service",
+    default_service = "org.freedesktop.systemd1",
+    assume_defaults = false
+)]
+trait Service {
+    /// Get property `MainPID`.
+    #[dbus_proxy(property, name = "MainPID")]
+    fn main_pid(&self) -> zbus::Result<u32>;
+}
+
 /// Returns the load state of a systemd unit
 ///
 /// Returns `invalid-unit-path` if the path is invalid
 ///
 /// # Arguments
 ///
-/// * `full_service_name`: Full name of the service name with '.service' in the end
 /// * `connection`: Blocking zbus connection
+/// * `full_service_name`: Full name of the service name with '.service' in the end
 ///
-pub fn get_load_state(full_service_name: &String, connection: &Connection) -> String {
+pub fn get_load_state(connection: &Connection, full_service_name: &String) -> String {
     // Object path is different from file path which begins with /etc/systemd/system
     let object_path = format!(
         "/org/freedesktop/systemd1/unit/{}",
@@ -81,10 +94,10 @@ pub fn get_load_state(full_service_name: &String, connection: &Connection) -> St
 ///
 /// # Arguments
 ///
-/// * `full_service_name`: Full name of the service name with '.service' in the end
 /// * `connection`: Blocking zbus connection
+/// * `full_service_name`: Full name of the service name with '.service' in the end
 ///
-pub fn get_active_state(full_service_name: &String, connection: &Connection) -> String {
+pub fn get_active_state(connection: &Connection, full_service_name: &String) -> String {
     let object_path = format!(
         "/org/freedesktop/systemd1/unit/{}",
         encode_as_dbus_object_path(full_service_name)
@@ -107,10 +120,10 @@ pub fn get_active_state(full_service_name: &String, connection: &Connection) -> 
 ///
 /// # Arguments
 ///
-/// * `full_service_name`: Full name of the service name with '.service' in the end
 /// * `connection`: Blocking zbus connection
+/// * `full_service_name`: Full name of the service name with '.service' in the end
 ///
-pub fn get_unit_file_state(full_service_name: &String, connection: &Connection) -> String {
+pub fn get_unit_file_state(connection: &Connection, full_service_name: &String) -> String {
     let object_path = format!(
         "/org/freedesktop/systemd1/unit/{}",
         encode_as_dbus_object_path(full_service_name)
@@ -125,6 +138,26 @@ pub fn get_unit_file_state(full_service_name: &String, connection: &Connection) 
         }
         Err(_) => "invalid-unit-path".to_string(),
     }
+}
+
+/// Returns the PID of a systemd service
+///
+/// # Arguments
+///
+/// * `connection`: Blocking zbus connection
+/// * `full_service_name`: Full name of the service name with '.service' in the end
+///
+pub fn get_main_pid(connection: &Connection, full_service_name: &String) -> Result<u32, zbus::Error> {
+    let object_path = format!(
+        "/org/freedesktop/systemd1/unit/{}",
+        encode_as_dbus_object_path(full_service_name)
+    );
+
+    let validated_object_path = zbus::zvariant::ObjectPath::try_from(object_path).unwrap();
+
+    let service_proxy = ServiceProxyBlocking::new(connection, validated_object_path).unwrap();
+    service_proxy
+        .main_pid()
 }
 
 /// Encode into a valid dbus string
