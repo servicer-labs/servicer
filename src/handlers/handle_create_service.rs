@@ -3,7 +3,7 @@ use which::which;
 
 use indoc::formatdoc;
 
-use crate::TOOL_NAME;
+use crate::{utils::service_names::get_full_service_name, TOOL_NAME};
 
 /// Creates a new systemd service file.
 ///
@@ -42,7 +42,7 @@ pub fn handle_create_service(
         .to_string();
 
     let service_name = custom_name.unwrap_or(file_name.to_string());
-    let full_service_name = format!("{}.{}.service", service_name, TOOL_NAME);
+    let full_service_name = get_full_service_name(&service_name);
 
     // Create file if it doesn't exist
     let service_file_path = format!("/etc/systemd/system/{}", full_service_name.clone());
@@ -165,6 +165,8 @@ fn create_service_file(
     // Create the service file and write the content
     let mut file = fs::File::create(service_file_path)?;
     file.write_all(service_body.as_bytes())?;
+
+    // TODO show status
 
     Ok(())
 }

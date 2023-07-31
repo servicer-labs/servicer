@@ -1,11 +1,12 @@
 use clap::{Parser, Subcommand};
 
 mod handlers;
-mod systemd;
+mod utils;
 
 use crate::handlers::handle_create_service::handle_create_service;
 use crate::handlers::handle_show_status::handle_show_status;
 use crate::handlers::handle_start_service::handle_start_service;
+use crate::handlers::handle_stop_service::handle_stop_service;
 
 pub const TOOL_NAME: &str = "stabled";
 
@@ -46,6 +47,13 @@ pub enum Commands {
         enable_on_boot: bool,
     },
 
+    /// Stop a service
+    #[command(arg_required_else_help = true)]
+    Stop {
+        /// The service name in short form (hello-world) or long form (hello-world.stabled.service).
+        name: String,
+    },
+
     /// View the status of your services
     #[command()]
     Status {},
@@ -67,6 +75,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         } => handle_start_service(name, enable_on_boot).unwrap(),
 
         Commands::Status {} => handle_show_status().unwrap(),
+
+        Commands::Stop { name } => handle_stop_service(name).unwrap(),
     }
 
     Ok(())

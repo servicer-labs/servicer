@@ -1,6 +1,6 @@
 use crate::{
-    systemd::{get_active_state, get_main_pid, get_unit_file_state},
-    TOOL_NAME,
+    utils::service_names::{get_short_service_name, is_full_name},
+    utils::systemd::{get_active_state, get_main_pid, get_unit_file_state},
 };
 use bytesize::ByteSize;
 use cli_table::{Table, WithTitle};
@@ -61,7 +61,7 @@ pub fn handle_show_status() -> Result<(), Box<dyn std::error::Error>> {
             };
             ServiceStatus {
                 pid,
-                name: get_short_service_name(&name).to_string(),
+                name: get_short_service_name(&name),
                 active,
                 enabled_on_boot,
                 cpu,
@@ -78,7 +78,6 @@ pub fn handle_show_status() -> Result<(), Box<dyn std::error::Error>> {
 /// Get systemd services having an extension `.stabled.service`. We only monitor services created by this tool
 fn get_stabled_services() -> Vec<String> {
     let folder_path = "/etc/systemd/system/";
-    let file_extension = format!(".{TOOL_NAME}.service");
 
     let folder_path = Path::new(folder_path);
 
@@ -91,7 +90,7 @@ fn get_stabled_services() -> Vec<String> {
                     let file_name = entry.file_name();
                     if let Some(file_name) = file_name.to_str() {
                         // Check if the file has the desired extension
-                        if file_name.ends_with(&file_extension) {
+                        if is_full_name(file_name) {
                             return Some(file_name.to_string());
                         }
                     }
@@ -105,16 +104,4 @@ fn get_stabled_services() -> Vec<String> {
 
     // Return an empty vector if there was an error reading the directory
     Vec::new()
-}
-
-/// Shortens the service name from `example.stabled.service` to `example`
-///
-/// # Arguments
-///
-/// * `full_service_name`
-///
-fn get_short_service_name(full_service_name: &str) -> &str {
-    let file_extension = format!(".{TOOL_NAME}.service");
-
-    full_service_name.trim_end_matches(file_extension.as_str())
 }

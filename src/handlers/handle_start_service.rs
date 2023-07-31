@@ -1,6 +1,6 @@
 use crate::{
-    systemd::{get_active_state, get_unit_file_state, ManagerProxyBlocking},
-    TOOL_NAME,
+    utils::service_names::{get_full_service_name, is_full_name},
+    utils::systemd::{get_active_state, get_unit_file_state, ManagerProxyBlocking},
 };
 
 /// Starts a systemd service. This is a no-op if the service is already running.
@@ -17,11 +17,10 @@ pub fn handle_start_service(
     let connection = zbus::blocking::Connection::system().unwrap();
     let manager_proxy = ManagerProxyBlocking::new(&connection).unwrap();
 
-    let service_extension = format!(".{TOOL_NAME}.service");
-    let full_name = if name.ends_with(&service_extension) {
+    let full_name = if is_full_name(&name) {
         name.clone()
     } else {
-        format!("{name}{service_extension}")
+        get_full_service_name(&name)
     };
 
     let active_state = get_active_state(&connection, &full_name);
@@ -50,6 +49,8 @@ pub fn handle_start_service(
         }
         println!("service started: {start_service_result}. Enable on boot: {enable_on_boot}");
     };
+
+    // TODO show status
 
     Ok(())
 }
