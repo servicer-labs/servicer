@@ -1,9 +1,6 @@
-use crate::{
-    handlers::handle_show_status::handle_show_status,
-    utils::{
-        service_names::{get_full_service_name, is_full_name},
-        systemd::ManagerProxyBlocking,
-    },
+use crate::utils::{
+    service_names::{get_full_service_name, is_full_name},
+    systemd::ManagerProxy,
 };
 
 /// Stops a service
@@ -14,26 +11,27 @@ use crate::{
 ///
 /// * `name`- Name of the service to stop in short form (hello-world) or long form (hello-world.stabled.service).
 ///
-pub fn handle_stop_service(name: String) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn handle_stop_service(name: String) -> Result<(), Box<dyn std::error::Error>> {
     let full_service_name = if is_full_name(&name) {
         name.clone()
     } else {
         get_full_service_name(&name)
     };
 
-    let connection = zbus::blocking::Connection::system().unwrap();
-    let manager_proxy = ManagerProxyBlocking::new(&connection).unwrap();
-    stop_service(&manager_proxy, &full_service_name);
+    let connection = zbus::Connection::system().await.unwrap();
+    let manager_proxy = ManagerProxy::new(&connection).await.unwrap();
+    stop_service(&manager_proxy, &full_service_name).await;
 
     println!("Stopped {name}");
 
-    handle_show_status().unwrap();
+    // handle_show_status().unwrap();
 
     Ok(())
 }
 
-fn stop_service(manager_proxy: &ManagerProxyBlocking, full_service_name: &String) {
+async fn stop_service(manager_proxy: &ManagerProxy<'_>, full_service_name: &String) {
     manager_proxy
         .stop_unit(full_service_name.to_string(), "replace".into())
+        .await
         .expect(&format!("Failed to stop service {full_service_name}"));
 }
