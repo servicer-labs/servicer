@@ -1,4 +1,4 @@
-use zbus::blocking::Connection;
+use zbus::Connection;
 use zbus::{dbus_proxy, zvariant};
 
 /// Proxy object for `org.freedesktop.systemd1.Manager`.
@@ -6,7 +6,8 @@ use zbus::{dbus_proxy, zvariant};
 #[dbus_proxy(
     interface = "org.freedesktop.systemd1.Manager",
     default_service = "org.freedesktop.systemd1",
-    default_path = "/org/freedesktop/systemd1"
+    default_path = "/org/freedesktop/systemd1",
+    gen_blocking = false
 )]
 pub trait Manager {
     /// [📖](https://www.freedesktop.org/software/systemd/man/systemd.directives.html#StartUnit()) Call interface method `StartUnit`.
@@ -32,7 +33,8 @@ pub trait Manager {
 #[dbus_proxy(
     interface = "org.freedesktop.systemd1.Unit",
     default_service = "org.freedesktop.systemd1",
-    assume_defaults = false
+    assume_defaults = false,
+    gen_blocking = false
 )]
 pub trait Unit {
     /// Get property `ActiveState`.
@@ -53,7 +55,8 @@ pub trait Unit {
 #[dbus_proxy(
     interface = "org.freedesktop.systemd1.Service",
     default_service = "org.freedesktop.systemd1",
-    assume_defaults = false
+    assume_defaults = false,
+    gen_blocking = false
 )]
 trait Service {
     /// Get property `MainPID`.
@@ -67,10 +70,10 @@ trait Service {
 ///
 /// # Arguments
 ///
-/// * `connection`: Blocking zbus connection
+/// * `connection`: zbus connection
 /// * `full_service_name`: Full name of the service name with '.service' in the end
 ///
-pub fn get_load_state(connection: &Connection, full_service_name: &String) -> String {
+pub async fn get_load_state(connection: &Connection, full_service_name: &String) -> String {
     // Object path is different from file path which begins with /etc/systemd/system
     let object_path = format!(
         "/org/freedesktop/systemd1/unit/{}",
@@ -79,9 +82,10 @@ pub fn get_load_state(connection: &Connection, full_service_name: &String) -> St
 
     match zvariant::ObjectPath::try_from(object_path) {
         Ok(path) => {
-            let unit_proxy = UnitProxyBlocking::new(connection, path).unwrap();
+            let unit_proxy = UnitProxy::new(connection, path).await.unwrap();
             unit_proxy
                 .load_state()
+                .await
                 .unwrap_or("invalid-unit-path".into())
         }
         Err(_) => "invalid-unit-path".to_string(),
@@ -94,10 +98,10 @@ pub fn get_load_state(connection: &Connection, full_service_name: &String) -> St
 ///
 /// # Arguments
 ///
-/// * `connection`: Blocking zbus connection
+/// * `connection`: zbus connection
 /// * `full_service_name`: Full name of the service name with '.service' in the end
 ///
-pub fn get_active_state(connection: &Connection, full_service_name: &String) -> String {
+pub async fn get_active_state(connection: &Connection, full_service_name: &String) -> String {
     let object_path = format!(
         "/org/freedesktop/systemd1/unit/{}",
         encode_as_dbus_object_path(full_service_name)
@@ -105,9 +109,10 @@ pub fn get_active_state(connection: &Connection, full_service_name: &String) -> 
 
     match zvariant::ObjectPath::try_from(object_path) {
         Ok(path) => {
-            let unit_proxy = UnitProxyBlocking::new(connection, path).unwrap();
+            let unit_proxy = UnitProxy::new(connection, path).await.unwrap();
             unit_proxy
                 .active_state()
+                .await
                 .unwrap_or("invalid-unit-path".into())
         }
         Err(_) => "invalid-unit-path".to_string(),
@@ -120,10 +125,10 @@ pub fn get_active_state(connection: &Connection, full_service_name: &String) -> 
 ///
 /// # Arguments
 ///
-/// * `connection`: Blocking zbus connection
+/// * `connection`: zbus connection
 /// * `full_service_name`: Full name of the service name with '.service' in the end
 ///
-pub fn get_unit_file_state(connection: &Connection, full_service_name: &String) -> String {
+pub async fn get_unit_file_state(connection: &Connection, full_service_name: &String) -> String {
     let object_path = format!(
         "/org/freedesktop/systemd1/unit/{}",
         encode_as_dbus_object_path(full_service_name)
@@ -131,9 +136,10 @@ pub fn get_unit_file_state(connection: &Connection, full_service_name: &String) 
 
     match zvariant::ObjectPath::try_from(object_path) {
         Ok(path) => {
-            let unit_proxy = UnitProxyBlocking::new(connection, path).unwrap();
+            let unit_proxy = UnitProxy::new(connection, path).await.unwrap();
             unit_proxy
                 .unit_file_state()
+                .await
                 .unwrap_or("invalid-unit-path".into())
         }
         Err(_) => "invalid-unit-path".to_string(),
@@ -144,10 +150,10 @@ pub fn get_unit_file_state(connection: &Connection, full_service_name: &String) 
 ///
 /// # Arguments
 ///
-/// * `connection`: Blocking zbus connection
+/// * `connection`: zbus connection
 /// * `full_service_name`: Full name of the service name with '.service' in the end
 ///
-pub fn get_main_pid(
+pub async fn get_main_pid(
     connection: &Connection,
     full_service_name: &String,
 ) -> Result<u32, zbus::Error> {
@@ -158,8 +164,10 @@ pub fn get_main_pid(
 
     let validated_object_path = zvariant::ObjectPath::try_from(object_path).unwrap();
 
-    let service_proxy = ServiceProxyBlocking::new(connection, validated_object_path).unwrap();
-    service_proxy.main_pid()
+    let service_proxy = ServiceProxy::new(connection, validated_object_path)
+        .await
+        .unwrap();
+    service_proxy.main_pid().await
 }
 
 /// Encode into a valid dbus string

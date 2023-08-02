@@ -1,7 +1,7 @@
-use std::{env, path::Path};
-use which::which;
-use tokio::fs;
 use indoc::formatdoc;
+use std::{env, path::Path};
+use tokio::fs;
+use which::which;
 
 use crate::{utils::service_names::get_full_service_name, TOOL_NAME};
 
