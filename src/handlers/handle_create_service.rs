@@ -1,6 +1,6 @@
-use std::{env, fs, io::Write, path::Path};
+use std::{env, path::Path};
 use which::which;
-
+use tokio::fs;
 use indoc::formatdoc;
 
 use crate::{utils::service_names::get_full_service_name, TOOL_NAME};
@@ -13,24 +13,16 @@ use crate::{utils::service_names::get_full_service_name, TOOL_NAME};
 /// * `custom_name`
 /// * `custom_interpreter`
 ///
-pub fn handle_create_service(
+pub async fn handle_create_service(
     path: String,
     custom_name: Option<String>,
     custom_interpreter: Option<String>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let file_path = Path::new(&path);
-    if !file_path.exists() {
-        panic!(
-            "Could not find file at path {}",
-            file_path.to_str().unwrap_or_default()
-        );
-    }
 
-    if !file_path.is_file() {
-        panic!(
-            "A non-file entity (e.g., directory) exists at the path {}",
-            file_path.to_str().unwrap_or_default()
-        );
+    let path_metadata = fs::metadata(&file_path).await.unwrap();
+    if !path_metadata.is_file() {
+        return Err(format!("{path} is not a file").into());
     }
 
     // The file name including extension, eg. index.js
@@ -56,6 +48,7 @@ pub fn handle_create_service(
         };
 
         let working_directory = fs::canonicalize(file_path.parent().unwrap())
+            .await
             .unwrap()
             .to_str()
             .unwrap()
@@ -68,9 +61,12 @@ pub fn handle_create_service(
             interpreter,
             &file_name,
         )
+        .await
         .unwrap();
 
         println!("Service {service_name} created at {service_file_path}. To start run `{TOOL_NAME} start {service_name}`");
+
+        // TODO show status
     }
 
     Ok(())
@@ -113,12 +109,12 @@ fn get_interpreter(extension: Option<&std::ffi::OsStr>) -> Option<String> {
 /// TODO allow users to pass the interpreter path.
 /// * `file_name` - Name of the file to run
 ///
-fn create_service_file(
-    service_name: &String,
-    service_file_path: &String,
-    working_directory: &String,
+async fn create_service_file(
+    service_name: &str,
+    service_file_path: &str,
+    working_directory: &str,
     interpreter: Option<String>,
-    file_name: &String,
+    file_name: &str,
 ) -> std::io::Result<()> {
     // This gets `root` instead of `hp` if sudo is used
     let user =
@@ -139,7 +135,7 @@ fn create_service_file(
 
             format!("{} {}", interpreter_path, file_name)
         }
-        None => file_name.clone(),
+        None => file_name.to_string(),
     };
 
     // Replacement for format!(). This proc macro removes spaces produced by indentation.
@@ -163,10 +159,5 @@ fn create_service_file(
     };
 
     // Create the service file and write the content
-    let mut file = fs::File::create(service_file_path)?;
-    file.write_all(service_body.as_bytes())?;
-
-    // TODO show status
-
-    Ok(())
+    fs::write(service_file_path, service_body.as_bytes()).await
 }

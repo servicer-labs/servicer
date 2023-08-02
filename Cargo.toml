@@ -8,6 +8,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+tokio = { version = "1.29.1", features = ["rt-multi-thread", "macros", "fs"] }
 clap = { version = "4.3.19", features = ["derive"] }
 cli-table = "0.4.7"
 indoc = "2.0.3"

@@ -36,30 +36,31 @@ pub enum Commands {
         interpreter: Option<String>,
     },
 
-    /// Start a service
-    #[command(arg_required_else_help = true)]
-    Start {
-        /// The service name in short form (hello-world) or long form (hello-world.stabled.service)
-        name: String,
+    // /// Start a service
+    // #[command(arg_required_else_help = true)]
+    // Start {
+    //     /// The service name in short form (hello-world) or long form (hello-world.stabled.service)
+    //     name: String,
 
-        /// Enable the service to start at boot. Equivalent to `systemctl enable`. Can enable a running service.
-        #[arg(short, long)]
-        enable_on_boot: bool,
-    },
+    //     /// Enable the service to start at boot. Equivalent to `systemctl enable`. Can enable a running service.
+    //     #[arg(short, long)]
+    //     enable_on_boot: bool,
+    // },
 
-    /// Stop a service
-    #[command(arg_required_else_help = true)]
-    Stop {
-        /// The service name in short form (hello-world) or long form (hello-world.stabled.service).
-        name: String,
-    },
+    // /// Stop a service
+    // #[command(arg_required_else_help = true)]
+    // Stop {
+    //     /// The service name in short form (hello-world) or long form (hello-world.stabled.service).
+    //     name: String,
+    // },
 
-    /// View the status of your services
-    #[command()]
-    Status {},
+    // /// View the status of your services
+    // #[command()]
+    // Status {},
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
     match args.command {
@@ -67,16 +68,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             path,
             name,
             interpreter,
-        } => handle_create_service(path, name, interpreter).unwrap(),
+        } => handle_create_service(path, name, interpreter).await.unwrap(),
 
-        Commands::Start {
-            name,
-            enable_on_boot,
-        } => handle_start_service(name, enable_on_boot).unwrap(),
+        // Commands::Start {
+        //     name,
+        //     enable_on_boot,
+        // } => handle_start_service(name, enable_on_boot).unwrap(),
 
-        Commands::Status {} => handle_show_status().unwrap(),
+        // Commands::Status {} => handle_show_status().unwrap(),
 
-        Commands::Stop { name } => handle_stop_service(name).unwrap(),
+        // Commands::Stop { name } => handle_stop_service(name).unwrap(),
     }
 
     Ok(())
