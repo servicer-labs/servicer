@@ -1,11 +1,19 @@
 use crate::{
     utils::service_names::{get_short_service_name, is_full_name},
-    utils::systemd::{get_active_state, get_main_pid, get_unit_file_state},
+    utils::{
+        process_status::{get_memory_usage, get_page_size},
+        systemd::{get_active_state, get_main_pid, get_unit_file_state},
+    },
 };
 use bytesize::ByteSize;
 use cli_table::{Table, WithTitle};
 use psutil::process::Process;
-use std::{fs, path::Path};
+use std::{path::Path, sync::Arc};
+use tokio::{fs, sync::Mutex};
+use zbus::{
+    export::futures_util::future::try_join_all,
+    Connection,
+};
 
 #[derive(Table)]
 struct ServiceStatus {
@@ -31,34 +39,30 @@ struct ServiceStatus {
 }
 
 /// Display the status of your services
-pub fn handle_show_status() -> Result<(), Box<dyn std::error::Error>> {
-    let connection = zbus::blocking::Connection::system().unwrap();
-    let stabled_service_names = get_stabled_services();
+pub async fn handle_show_status() -> Result<(), Box<dyn std::error::Error>> {
+    let connection = Arc::new(Mutex::new(Connection::system().await?));
+    let page_size = get_page_size().await;
+    let stabled_service_names = get_stabled_services().await.unwrap();
 
-    // TODO consider async to parallelize reads
-    let service_statuses: Vec<ServiceStatus> = stabled_service_names
-        .into_iter()
-        .map(|name| {
-            let active = get_active_state(&connection, &name) == "active";
-            let enabled_on_boot = get_unit_file_state(&connection, &name) == "enabled";
+    let tasks = stabled_service_names.into_iter().map(|name| {
+        let connection = connection.clone();
+        tokio::spawn(async move {
+            let connection = connection.lock().await;
+
+            let active = get_active_state(&connection, &name).await == "active";
+            let enabled_on_boot = get_unit_file_state(&connection, &name).await == "enabled";
+
+            // PID, CPU and memory is 0 for inactive processes
             let (pid, cpu, memory) = if active {
-                let pid = get_main_pid(&connection, &name).unwrap();
+                let pid = get_main_pid(&connection, &name).await.unwrap();
 
-                // cpu_percent() must be called twice to find CPU usage
-                // TODO optimize by writing in a non-blocking fashion
-                let mut process = Process::new(pid).unwrap();
-                process.cpu_percent().unwrap();
-                std::thread::sleep(std::time::Duration::from_millis(200));
-                let cpu = process.cpu_percent().unwrap();
+                let memory = get_memory_usage(pid, page_size as u64).await;
 
-                let memory_info = process.memory_info().unwrap();
-
-                // Formula used by Ubuntu task manager
-                let memory = memory_info.rss() - memory_info.shared();
-                (pid, cpu, ByteSize(memory).to_string())
+                (pid, 0f32, ByteSize(memory).to_string())
             } else {
                 (0, 0f32, "0".to_string())
             };
+
             ServiceStatus {
                 pid,
                 name: get_short_service_name(&name),
@@ -68,7 +72,8 @@ pub fn handle_show_status() -> Result<(), Box<dyn std::error::Error>> {
                 memory,
             }
         })
-        .collect();
+    });
+    let service_statuses = try_join_all(tasks).await.unwrap();
 
     cli_table::print_stdout(service_statuses.with_title())?;
 
@@ -76,32 +81,24 @@ pub fn handle_show_status() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// Get systemd services having an extension `.stabled.service`. We only monitor services created by this tool
-fn get_stabled_services() -> Vec<String> {
+async fn get_stabled_services() -> Result<Vec<String>, std::io::Error> {
     let folder_path = "/etc/systemd/system/";
 
     let folder_path = Path::new(folder_path);
 
-    // Read the contents of the directory
-    if let Ok(entries) = fs::read_dir(folder_path) {
-        let stabled_services: Vec<String> = entries
-            // Filter files only
-            .filter_map(|entry| {
-                if let Ok(entry) = entry {
-                    let file_name = entry.file_name();
-                    if let Some(file_name) = file_name.to_str() {
-                        // Check if the file has the desired extension
-                        if is_full_name(file_name) {
-                            return Some(file_name.to_string());
-                        }
-                    }
-                }
-                None
-            })
-            .collect();
+    let mut files = Vec::<String>::new();
+    let mut dir = fs::read_dir(folder_path).await.unwrap();
 
-        return stabled_services;
+    while let Some(entry) = dir.next_entry().await.unwrap() {
+        let path = entry.path();
+
+        if path.is_file() {
+            let name = path.file_name().unwrap().to_str().unwrap();
+            if is_full_name(name) {
+                files.push(name.to_string());
+            }
+        }
     }
 
-    // Return an empty vector if there was an error reading the directory
-    Vec::new()
+    Ok(files)
 }

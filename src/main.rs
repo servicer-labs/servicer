@@ -4,7 +4,7 @@ mod handlers;
 mod utils;
 
 use crate::handlers::handle_create_service::handle_create_service;
-// use crate::handlers::handle_show_status::handle_show_status;
+use crate::handlers::handle_show_status::handle_show_status;
 use crate::handlers::handle_start_service::handle_start_service;
 use crate::handlers::handle_stop_service::handle_stop_service;
 
@@ -53,9 +53,9 @@ pub enum Commands {
         /// The service name in short form (hello-world) or long form (hello-world.stabled.service).
         name: String,
     },
-    // /// View the status of your services
-    // #[command()]
-    // Status {},
+    /// View the status of your services
+    #[command()]
+    Status {},
 }
 
 #[tokio::main]
@@ -75,8 +75,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             name,
             enable_on_boot,
         } => handle_start_service(name, enable_on_boot).await.unwrap(),
-        // Commands::Status {} => handle_show_status().unwrap(),
+
         Commands::Stop { name } => handle_stop_service(name).await.unwrap(),
+
+        Commands::Status {} => handle_show_status().await.unwrap(),
     }
 
     Ok(())
