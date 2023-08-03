@@ -8,8 +8,8 @@ use crate::{
 use bytesize::ByteSize;
 use cli_table::{Table, WithTitle};
 use futures;
-use std::{path::Path, sync::Arc};
-use tokio::{fs, sync::Mutex};
+use std::path::Path;
+use tokio::fs;
 use zbus::Connection;
 
 #[derive(Table, Clone)]
@@ -37,46 +37,39 @@ pub struct ServiceStatus {
 
 /// Display the status of your services
 pub async fn handle_show_status() -> Result<(), Box<dyn std::error::Error>> {
-    let connection = Arc::new(Mutex::new(Connection::system().await?));
     let page_size = get_page_size().await;
     let stabled_service_names = get_stabled_services().await.unwrap();
 
+    let connection = Connection::system().await?;
+
     let mut active_process_exists = true;
+    let mut service_statuses: Vec<ServiceStatus> = vec![];
 
-    // release benchmark
-    // with tokio- 0m0.169s
-    let tasks = stabled_service_names.into_iter().map(|name| {
-        let connection = connection.clone();
+    for name in stabled_service_names {
+        let active = get_active_state(&connection, &name).await;
+        let enabled_on_boot = get_unit_file_state(&connection, &name).await == "enabled";
 
-        tokio::spawn(async move {
-            let connection = connection.lock().await;
+        // PID, CPU and memory is 0 for inactive and errored processes
+        let (pid, cpu, memory) = if active == "active" {
+            active_process_exists = true;
 
-            let active = get_active_state(&connection, &name).await;
-            let enabled_on_boot = get_unit_file_state(&connection, &name).await == "enabled";
+            let pid = get_main_pid(&connection, &name).await.unwrap();
+            let memory = get_memory_usage(pid, page_size as u64).await;
 
-            // PID, CPU and memory is 0 for inactive and errored processes
-            let (pid, cpu, memory) = if active == "active" {
-                active_process_exists = true;
+            (pid, 0f32, ByteSize(memory).to_string())
+        } else {
+            (0, 0f32, "0".to_string())
+        };
 
-                let pid = get_main_pid(&connection, &name).await.unwrap();
-                let memory = get_memory_usage(pid, page_size as u64).await;
-
-                (pid, 0f32, ByteSize(memory).to_string())
-            } else {
-                (0, 0f32, "0".to_string())
-            };
-
-            ServiceStatus {
-                pid,
-                name: get_short_service_name(&name),
-                active,
-                enabled_on_boot,
-                cpu,
-                memory,
-            }
-        })
-    });
-    let mut service_statuses = futures::future::try_join_all(tasks).await.unwrap();
+        service_statuses.push(ServiceStatus {
+            pid,
+            name: get_short_service_name(&name),
+            active,
+            enabled_on_boot,
+            cpu,
+            memory,
+        });
+    }
 
     // CPU time algorithm- Find the change in CPU time over an interval, then divide by the interval
     // Source- https://github.com/dalance/procs/blob/ba703e98cd44be46ba32e084f1474d81b9a7f660/src/columns/usage_cpu.rs#L36C57-L36C83
@@ -84,7 +77,6 @@ pub async fn handle_show_status() -> Result<(), Box<dyn std::error::Error>> {
     // Sleep duration in ms
     const SLEEP_DURATION: u32 = 100;
 
-    println!("active process exists {}", active_process_exists);
     if active_process_exists {
         // We only need to sleep once with this method
         let initial_cpu_times = get_cpu_times(service_statuses.clone()).await;

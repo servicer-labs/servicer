@@ -3,7 +3,6 @@ use tokio::{
     io::{AsyncBufReadExt, AsyncReadExt, BufReader},
 };
 
-
 /// Gets the kernel page size of the system in KB
 pub async fn get_page_size() -> usize {
     let path = "/proc/self/smaps";
