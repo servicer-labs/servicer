@@ -1,41 +1,38 @@
 use crate::{
     utils::service_names::{get_short_service_name, is_full_name},
     utils::{
-        process_status::{get_memory_usage, get_page_size},
+        process_status::{get_cpu_time, get_memory_usage, get_page_size},
         systemd::{get_active_state, get_main_pid, get_unit_file_state},
     },
 };
 use bytesize::ByteSize;
 use cli_table::{Table, WithTitle};
-use psutil::process::Process;
+use futures;
 use std::{path::Path, sync::Arc};
 use tokio::{fs, sync::Mutex};
-use zbus::{
-    export::futures_util::future::try_join_all,
-    Connection,
-};
+use zbus::Connection;
 
-#[derive(Table)]
-struct ServiceStatus {
+#[derive(Table, Clone)]
+pub struct ServiceStatus {
     /// Process ID
-    pid: u32,
+    pub pid: u32,
 
     /// The short service name, excluding '.stabled.service'
-    name: String,
+    pub name: String,
 
     /// Active state
-    active: bool,
+    pub active: String,
 
     /// Load the service on boot
     #[table(title = "enable on boot")]
-    enabled_on_boot: bool,
+    pub enabled_on_boot: bool,
 
     /// CPU usage. Formatted string in %
     #[table(title = "cpu %")]
-    cpu: f32,
+    pub cpu: f32,
 
     /// RAM usage. Formatted string with MB, KB and other units
-    memory: String,
+    pub memory: String,
 }
 
 /// Display the status of your services
@@ -44,18 +41,24 @@ pub async fn handle_show_status() -> Result<(), Box<dyn std::error::Error>> {
     let page_size = get_page_size().await;
     let stabled_service_names = get_stabled_services().await.unwrap();
 
+    let mut active_process_exists = true;
+
+    // release benchmark
+    // with tokio- 0m0.169s
     let tasks = stabled_service_names.into_iter().map(|name| {
         let connection = connection.clone();
+
         tokio::spawn(async move {
             let connection = connection.lock().await;
 
-            let active = get_active_state(&connection, &name).await == "active";
+            let active = get_active_state(&connection, &name).await;
             let enabled_on_boot = get_unit_file_state(&connection, &name).await == "enabled";
 
-            // PID, CPU and memory is 0 for inactive processes
-            let (pid, cpu, memory) = if active {
-                let pid = get_main_pid(&connection, &name).await.unwrap();
+            // PID, CPU and memory is 0 for inactive and errored processes
+            let (pid, cpu, memory) = if active == "active" {
+                active_process_exists = true;
 
+                let pid = get_main_pid(&connection, &name).await.unwrap();
                 let memory = get_memory_usage(pid, page_size as u64).await;
 
                 (pid, 0f32, ByteSize(memory).to_string())
@@ -73,7 +76,33 @@ pub async fn handle_show_status() -> Result<(), Box<dyn std::error::Error>> {
             }
         })
     });
-    let service_statuses = try_join_all(tasks).await.unwrap();
+    let mut service_statuses = futures::future::try_join_all(tasks).await.unwrap();
+
+    // CPU time algorithm- Find the change in CPU time over an interval, then divide by the interval
+    // Source- https://github.com/dalance/procs/blob/ba703e98cd44be46ba32e084f1474d81b9a7f660/src/columns/usage_cpu.rs#L36C57-L36C83
+
+    // Sleep duration in ms
+    const SLEEP_DURATION: u32 = 100;
+
+    println!("active process exists {}", active_process_exists);
+    if active_process_exists {
+        // We only need to sleep once with this method
+        let initial_cpu_times = get_cpu_times(service_statuses.clone()).await;
+        tokio::time::sleep(tokio::time::Duration::from_millis(SLEEP_DURATION as u64)).await;
+        let final_cpu_times = get_cpu_times(service_statuses.clone()).await;
+
+        let tps = clock_ticks_per_second();
+
+        for i in 0..service_statuses.len() {
+            let initial_time = initial_cpu_times.get(i).unwrap().clone();
+            let final_time = final_cpu_times.get(i).unwrap().clone();
+            let usage_ms = (final_time - initial_time) * 1000 / tps;
+            let cpu_usage = usage_ms as f32 * 100.0 / SLEEP_DURATION as f32;
+
+            let status = service_statuses.get_mut(i).unwrap();
+            status.cpu = cpu_usage;
+        }
+    }
 
     cli_table::print_stdout(service_statuses.with_title())?;
 
@@ -101,4 +130,29 @@ async fn get_stabled_services() -> Result<Vec<String>, std::io::Error> {
     }
 
     Ok(files)
+}
+
+/// Get CPU clock ticks per second. This value is usually 100 on x86_64
+pub fn clock_ticks_per_second() -> u64 {
+    unsafe { libc::sysconf(libc::_SC_CLK_TCK) as u64 }
+}
+
+/// Get CPU time for a vector of services
+///
+/// # Arguments
+///
+/// * `service_statuses`
+///
+pub async fn get_cpu_times(service_statuses: Vec<ServiceStatus>) -> Vec<u64> {
+    futures::future::try_join_all(service_statuses.into_iter().map(|status| {
+        tokio::spawn(async move {
+            if status.active == "active" {
+                get_cpu_time(status.pid).await.unwrap()
+            } else {
+                0
+            }
+        })
+    }))
+    .await
+    .unwrap()
 }
