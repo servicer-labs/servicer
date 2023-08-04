@@ -4,6 +4,7 @@ mod handlers;
 mod utils;
 
 use crate::handlers::handle_create_service::handle_create_service;
+use crate::handlers::handle_show_logs::handle_show_logs;
 use crate::handlers::handle_show_status::handle_show_status;
 use crate::handlers::handle_start_service::handle_start_service;
 use crate::handlers::handle_stop_service::handle_stop_service;
@@ -56,6 +57,21 @@ pub enum Commands {
     /// View the status of your services
     #[command()]
     Status {},
+
+    /// View logs for a service
+    #[command()]
+    Logs {
+        /// The service name
+        name: String,
+
+        /// Output the last N lines, instead of the default 15
+        #[arg(short = 'n', long, default_value_t = 15)]
+        lines: u32,
+
+        /// Follow the logs as they change
+        #[arg(short, long, default_value_t = false)]
+        follow: bool,
+    },
 }
 
 #[tokio::main]
@@ -79,6 +95,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Commands::Stop { name } => handle_stop_service(name).await.unwrap(),
 
         Commands::Status {} => handle_show_status().await.unwrap(),
+
+        Commands::Logs {
+            name,
+            lines,
+            follow,
+        } => handle_show_logs(name, lines, follow).await.unwrap(),
     }
 
     Ok(())

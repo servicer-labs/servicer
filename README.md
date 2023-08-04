@@ -98,12 +98,40 @@ Jul 26 18:57:54 hp systemd[1]: Started hello-world.stabled.service - stabled: he
 Jul 26 18:57:54 hp node[25875]: Server listening on port 3000
 ```
 
-# CLI behavior
+## Logs
 
-- `start`: The input can be a file path or a service name.
-  - If it is a file path, a new service is created.
-  - If it is a service name, restart the service if it has been stopped.
-  - If it is a file path and a service with the given name already exists, overwrite that service.
-  - Occam's Razor- simple, people already familiar.
+```sh
+# Show latest logs but does not stream them. Shows 10 lines at most. No separation between error and output streams.
+systemctl status hello-world.stabled.service
 
-- Alternative with `init` and `start`: pm2 method is convenient for redeploying apps by using `-f`. To replicate this, have an `overwrite` param. If a service with the same name exists, it gets overwritten.
+# Using journalctl- this shows old logs. Logs are retained even after the service is deleted.
+journalctl -u hello-world.stabled.service
+```
+
+- Read logs from `journalctl`, then filter upto the start command
+
+```
+Aug 04 12:39:01 hp node[3510]: Server listening on port 3000
+Aug 04 13:57:56 hp systemd[1]: Stopping hello-world.stabled.service - stabled: hello-world...
+Aug 04 13:57:56 hp systemd[1]: hello-world.stabled.service: Deactivated successfully.
+Aug 04 13:57:56 hp systemd[1]: Stopped hello-world.stabled.service - stabled: hello-world.
+Aug 04 14:33:41 hp systemd[1]: Started hello-world.stabled.service - stabled: hello-world.
+Aug 04 14:33:51 hp node[10218]: this is output
+Aug 04 14:34:01 hp node[10218]: this is error
+Aug 04 14:34:01 hp node[10218]: this is output
+Aug 04 14:34:11 hp node[10218]: this is output
+Aug 04 14:34:21 hp node[10218]: this is error
+Aug 04 14:34:21 hp node[10218]: this is output
+Aug 04 14:34:31 hp node[10218]: this is output
+Aug 04 14:34:41 hp node[10218]: this is error
+```
+
+- Separating output from error: `journalctl -u hello-world.stabled.service -p err` has old messages, not `console.error()` messages. journald doesn't distinguish between stdout and stderr yet- https://github.com/systemd/systemd/pull/6599#issuecomment-1658445824
+
+- Flushing: No need of the command. Systemd automatically rotates logs.
+
+- Solution: past N lines upto the start command, while streaming the latest output.
+
+```
+journalctl -u hello-world.stabled.service -n 15 --follow
+```

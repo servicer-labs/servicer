@@ -73,34 +73,6 @@ trait Service {
 /// * `connection`: zbus connection
 /// * `full_service_name`: Full name of the service name with '.service' in the end
 ///
-pub async fn get_load_state(connection: &Connection, full_service_name: &String) -> String {
-    // Object path is different from file path which begins with /etc/systemd/system
-    let object_path = format!(
-        "/org/freedesktop/systemd1/unit/{}",
-        encode_as_dbus_object_path(full_service_name)
-    );
-
-    match zvariant::ObjectPath::try_from(object_path) {
-        Ok(path) => {
-            let unit_proxy = UnitProxy::new(connection, path).await.unwrap();
-            unit_proxy
-                .load_state()
-                .await
-                .unwrap_or("invalid-unit-path".into())
-        }
-        Err(_) => "invalid-unit-path".to_string(),
-    }
-}
-
-/// Returns the load state of a systemd unit
-///
-/// Returns `invalid-unit-path` if the path is invalid
-///
-/// # Arguments
-///
-/// * `connection`: zbus connection
-/// * `full_service_name`: Full name of the service name with '.service' in the end
-///
 pub async fn get_active_state(connection: &Connection, full_service_name: &String) -> String {
     let object_path = format!(
         "/org/freedesktop/systemd1/unit/{}",
