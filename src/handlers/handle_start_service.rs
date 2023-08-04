@@ -1,5 +1,5 @@
 use crate::{
-    utils::service_names::{get_full_service_name, is_full_name},
+    utils::service_names::get_full_service_name,
     utils::systemd::{get_active_state, get_unit_file_state, ManagerProxy},
 };
 
@@ -7,7 +7,7 @@ use crate::{
 ///
 /// # Arguments
 ///
-/// * `name` - The service name. This can be in short form, i.e. 'hello-world' or long form 'hello-world.stabled.service'
+/// * `name` - The service name
 /// * `enable_on_boot` - Enable the service to start on boot. A running service can be enabled to start on boot.
 ///
 pub async fn handle_start_service(
@@ -17,11 +17,7 @@ pub async fn handle_start_service(
     let connection = zbus::Connection::system().await.unwrap();
     let manager_proxy = ManagerProxy::new(&connection).await.unwrap();
 
-    let full_name = if is_full_name(&name) {
-        name.clone()
-    } else {
-        get_full_service_name(&name)
-    };
+    let full_name = get_full_service_name(&name);
 
     let active_state = get_active_state(&connection, &full_name).await;
 

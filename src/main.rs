@@ -40,7 +40,7 @@ pub enum Commands {
     /// Start a service
     #[command(arg_required_else_help = true)]
     Start {
-        /// The service name in short form (hello-world) or long form (hello-world.stabled.service)
+        /// The service name, eg. hello-world
         name: String,
 
         /// Enable the service to start at boot. Equivalent to `systemctl enable`. Can enable a running service.
@@ -51,7 +51,7 @@ pub enum Commands {
     /// Stop a service
     #[command(arg_required_else_help = true)]
     Stop {
-        /// The service name in short form (hello-world) or long form (hello-world.stabled.service).
+        /// The service name, eg. hello-world
         name: String,
     },
     /// View the status of your services

@@ -1,5 +1,5 @@
 use crate::utils::{
-    service_names::{get_full_service_name, is_full_name},
+    service_names::get_full_service_name,
     systemd::ManagerProxy,
 };
 
@@ -9,14 +9,10 @@ use crate::utils::{
 ///
 /// # Arguments
 ///
-/// * `name`- Name of the service to stop in short form (hello-world) or long form (hello-world.stabled.service).
+/// * `name`- Name of the service to stop
 ///
 pub async fn handle_stop_service(name: String) -> Result<(), Box<dyn std::error::Error>> {
-    let full_service_name = if is_full_name(&name) {
-        name.clone()
-    } else {
-        get_full_service_name(&name)
-    };
+    let full_service_name = get_full_service_name(&name);
 
     let connection = zbus::Connection::system().await.unwrap();
     let manager_proxy = ManagerProxy::new(&connection).await.unwrap();
