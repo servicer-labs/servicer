@@ -1,5 +1,8 @@
 use indoc::formatdoc;
-use std::{env, path::Path};
+use std::{
+    env,
+    path::{Path, PathBuf},
+};
 use tokio::fs;
 use which::which;
 
@@ -16,21 +19,18 @@ use crate::{utils::service_names::get_full_service_name, TOOL_NAME};
 /// * `internal_args`
 ///
 pub async fn handle_create_service(
-    path: String,
+    path: PathBuf,
     custom_name: Option<String>,
     custom_interpreter: Option<String>,
     env_vars: Option<String>,
     internal_args: Vec<String>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let file_path = Path::new(&path);
-
-    let path_metadata = fs::metadata(&file_path).await.unwrap();
-    if !path_metadata.is_file() {
-        return Err(format!("{path} is not a file").into());
+    if !path.is_file() {
+        return Err(format!("{} is not a file", path.to_str().unwrap()).into());
     }
 
     // The file name including extension, eg. index.js
-    let file_name = file_path
+    let file_name = path
         .file_name()
         .expect("Failed to get file name")
         .to_str()
@@ -48,10 +48,10 @@ pub async fn handle_create_service(
     } else {
         let interpreter = match custom_interpreter {
             Some(_) => custom_interpreter,
-            None => get_interpreter(file_path.extension()),
+            None => get_interpreter(path.extension()),
         };
 
-        let working_directory = fs::canonicalize(file_path.parent().unwrap())
+        let working_directory = fs::canonicalize(path.parent().unwrap())
             .await
             .unwrap()
             .to_str()

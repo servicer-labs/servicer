@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use clap::{Parser, Subcommand};
 
 mod handlers;
@@ -25,7 +27,7 @@ pub enum Commands {
     #[command(arg_required_else_help = true)]
     Create {
         /// The file path
-        path: String,
+        path: PathBuf,
 
         /// Optional custom name for the service
         #[arg(short, long)]
