@@ -1,7 +1,4 @@
-use crate::utils::{
-    service_names::get_full_service_name,
-    systemd::ManagerProxy,
-};
+use crate::utils::{service_names::get_full_service_name, systemd::ManagerProxy};
 
 /// Stops a service
 ///

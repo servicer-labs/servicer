@@ -35,6 +35,10 @@ pub enum Commands {
         /// `usr/bin/python3`. If no input is provided stabled will use the file extension to detect the interpreter.
         #[arg(short, long)]
         interpreter: Option<String>,
+
+        /// Optional params passed to the file. Eg. to run `node index.js --foo bar` call `stabled create index.js -- --foo bar`
+        #[arg(last = true)]
+        internal_args: Vec<String>,
     },
 
     /// Start a service
@@ -83,7 +87,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             path,
             name,
             interpreter,
-        } => handle_create_service(path, name, interpreter)
+            internal_args,
+        } => handle_create_service(path, name, interpreter, internal_args)
             .await
             .unwrap(),
 

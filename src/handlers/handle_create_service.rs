@@ -17,6 +17,7 @@ pub async fn handle_create_service(
     path: String,
     custom_name: Option<String>,
     custom_interpreter: Option<String>,
+    internal_args: Vec<String>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let file_path = Path::new(&path);
 
@@ -59,6 +60,7 @@ pub async fn handle_create_service(
             &service_file_path,
             &working_directory,
             interpreter,
+            internal_args,
             &file_name,
         )
         .await
@@ -114,12 +116,13 @@ async fn create_service_file(
     service_file_path: &str,
     working_directory: &str,
     interpreter: Option<String>,
+    internal_args: Vec<String>,
     file_name: &str,
 ) -> std::io::Result<()> {
     // This gets `root` instead of `hp` if sudo is used
     let user =
         env::var("SUDO_USER").expect("Must be in sudo mode. ENV variable $SUDO_USER not found");
-    let exec_start = match interpreter {
+    let mut exec_start = match interpreter {
         Some(interpreter) => {
             // Find full path of interpreter
             // caveat- since this function is called in sudo mode, `node` and `python` paths must be
@@ -137,6 +140,10 @@ async fn create_service_file(
         }
         None => file_name.to_string(),
     };
+
+    for arg in internal_args {
+        exec_start = format!("{} {}", exec_start, arg);
+    }
 
     // Replacement for format!(). This proc macro removes spaces produced by indentation.
     let service_body = formatdoc! {
