@@ -12,11 +12,14 @@ use crate::{utils::service_names::get_full_service_name, TOOL_NAME};
 /// * `path` - Create service for a file at this path
 /// * `custom_name`
 /// * `custom_interpreter`
+/// * `env_vars`
+/// * `internal_args`
 ///
 pub async fn handle_create_service(
     path: String,
     custom_name: Option<String>,
     custom_interpreter: Option<String>,
+    env_vars: Option<String>,
     internal_args: Vec<String>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let file_path = Path::new(&path);
@@ -60,6 +63,7 @@ pub async fn handle_create_service(
             &service_file_path,
             &working_directory,
             interpreter,
+            env_vars,
             internal_args,
             &file_name,
         )
@@ -108,7 +112,8 @@ fn get_interpreter(extension: Option<&std::ffi::OsStr>) -> Option<String> {
 /// * `working_directory` - Working directory of the file to execute
 /// * `interpreter` - The executable used to run the app, eg. `node` or `python3`. The executable
 /// must be visible from path for a sudo user. Note that the app itself does not run in sudo.
-/// TODO allow users to pass the interpreter path.
+/// * `env_vars` - Environment variables
+/// * `internal_args` - Args passed to the file
 /// * `file_name` - Name of the file to run
 ///
 async fn create_service_file(
@@ -116,6 +121,7 @@ async fn create_service_file(
     service_file_path: &str,
     working_directory: &str,
     interpreter: Option<String>,
+    env_vars: Option<String>,
     internal_args: Vec<String>,
     file_name: &str,
 ) -> std::io::Result<()> {
@@ -145,6 +151,25 @@ async fn create_service_file(
         exec_start = format!("{} {}", exec_start, arg);
     }
 
+    let env_vars_formatted = match env_vars {
+        Some(vars) => {
+            // Split the input string by whitespace
+            let pairs: Vec<&str> = vars.split_whitespace().collect();
+
+            // Format each pair as "Environment=key=value"
+            let formatted_pairs: Vec<String> = pairs
+                .iter()
+                .map(|pair| format!("Environment={}", pair))
+                .collect();
+
+            // Join the formatted pairs with newlines
+            let result = formatted_pairs.join("\n");
+
+            result
+        }
+        None => "".to_string(),
+    };
+
     // Replacement for format!(). This proc macro removes spaces produced by indentation.
     let service_body = formatdoc! {
         r#"
@@ -159,6 +184,7 @@ async fn create_service_file(
 
       WorkingDirectory={working_directory}
       ExecStart={exec_start}
+      {env_vars_formatted}
 
       [Install]
       WantedBy=multi-user.target

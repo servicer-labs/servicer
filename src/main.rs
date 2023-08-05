@@ -36,7 +36,11 @@ pub enum Commands {
         #[arg(short, long)]
         interpreter: Option<String>,
 
-        /// Optional params passed to the file. Eg. to run `node index.js --foo bar` call `stabled create index.js -- --foo bar`
+        /// Optional environment variables. To run `FOO=BAR node index.js` call `stabled create index.js --env_vars "FOO=BAR"`
+        #[arg(short, long)]
+        env_vars: Option<String>,
+
+        /// Optional args passed to the file. Eg. to run `node index.js --foo bar` call `stabled create index.js -- --foo bar`
         #[arg(last = true)]
         internal_args: Vec<String>,
     },
@@ -87,8 +91,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             path,
             name,
             interpreter,
+            env_vars,
             internal_args,
-        } => handle_create_service(path, name, interpreter, internal_args)
+        } => handle_create_service(path, name, interpreter, env_vars, internal_args)
             .await
             .unwrap(),
 
