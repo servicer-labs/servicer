@@ -21,6 +21,7 @@ use crate::{utils::service_names::get_full_service_name, TOOL_NAME};
 pub async fn handle_create_service(
     path: PathBuf,
     custom_name: Option<String>,
+    auto_restart: bool,
     custom_interpreter: Option<String>,
     env_vars: Option<String>,
     internal_args: Vec<String>,
@@ -62,6 +63,7 @@ pub async fn handle_create_service(
             &service_name,
             &service_file_path,
             &working_directory,
+            auto_restart,
             interpreter,
             env_vars,
             internal_args,
@@ -110,6 +112,7 @@ fn get_interpreter(extension: Option<&std::ffi::OsStr>) -> Option<String> {
 /// * `service_name`- Name of the service without '.stabled.service' in the end
 /// * `service_file_path` - Path where the service file will be written
 /// * `working_directory` - Working directory of the file to execute
+/// * `auto_restart` - Auto restart the service on error
 /// * `interpreter` - The executable used to run the app, eg. `node` or `python3`. The executable
 /// must be visible from path for a sudo user. Note that the app itself does not run in sudo.
 /// * `env_vars` - Environment variables
@@ -120,6 +123,7 @@ async fn create_service_file(
     service_name: &str,
     service_file_path: &str,
     working_directory: &str,
+    auto_restart: bool,
     interpreter: Option<String>,
     env_vars: Option<String>,
     internal_args: Vec<String>,
@@ -170,6 +174,8 @@ async fn create_service_file(
         None => "".to_string(),
     };
 
+    let restart_policy = if auto_restart { "Restart=always" } else { "" };
+
     // Replacement for format!(). This proc macro removes spaces produced by indentation.
     let service_body = formatdoc! {
         r#"
@@ -184,6 +190,7 @@ async fn create_service_file(
 
       WorkingDirectory={working_directory}
       ExecStart={exec_start}
+      {restart_policy}
       {env_vars_formatted}
 
       [Install]

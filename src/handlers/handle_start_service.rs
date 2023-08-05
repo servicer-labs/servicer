@@ -41,7 +41,7 @@ pub async fn handle_start_service(
         if enable_on_boot {
             enable_service(&manager_proxy, &full_name).await;
         }
-        println!("service started: {start_service_result}. Enable on boot: {enable_on_boot}");
+        println!("service started: {start_service_result}");
     };
 
     // TODO show status

@@ -33,6 +33,11 @@ pub enum Commands {
         #[arg(short, long)]
         name: Option<String>,
 
+        /// Auto-restart on failure. Default false. You should edit the .service file for more advanced features.
+        /// The service must be enabled for auto-restart to work.
+        #[arg(short = 'r', long)]
+        auto_restart: bool,
+
         /// Optional custom interpreter. Input can be the executable's name, eg `python3` or the full path
         /// `usr/bin/python3`. If no input is provided stabled will use the file extension to detect the interpreter.
         #[arg(short, long)]
@@ -92,12 +97,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Commands::Create {
             path,
             name,
+            auto_restart,
             interpreter,
             env_vars,
             internal_args,
-        } => handle_create_service(path, name, interpreter, env_vars, internal_args)
-            .await
-            .unwrap(),
+        } => handle_create_service(
+            path,
+            name,
+            auto_restart,
+            interpreter,
+            env_vars,
+            internal_args,
+        )
+        .await
+        .unwrap(),
 
         Commands::Start {
             name,
