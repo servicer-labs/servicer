@@ -88,8 +88,8 @@ pub enum Commands {
         name: String,
     },
 
-    /// View the status of your services
-    #[command()]
+    /// View the status of your services (alias: ls)
+    #[command(alias = "ls")]
     Status {},
 
     /// View logs for a service
