@@ -42,7 +42,7 @@ pub async fn handle_start_service(
 /// # Arguments
 ///
 /// * `manager_proxy`: Blocking Manager proxy object
-/// * `full_service_name`: Full name of the service, having '.servicer.service' at the end
+/// * `full_service_name`: Full name of the service, having '.ser.service' at the end
 ///
 async fn start_service(manager_proxy: &ManagerProxy<'_>, full_service_name: &String) -> String {
     manager_proxy

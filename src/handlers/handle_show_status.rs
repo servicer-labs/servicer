@@ -17,7 +17,7 @@ pub struct ServiceStatus {
     /// Process ID
     pub pid: u32,
 
-    /// The short service name, excluding '.servicer.service'
+    /// The short service name, excluding '.ser.service'
     pub name: String,
 
     /// Active state
@@ -103,7 +103,7 @@ pub async fn handle_show_status() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-/// Get systemd services having an extension `.servicer.service`. We only monitor services created by this tool
+/// Get systemd services having an extension `.ser.service`. We only monitor services created by this tool
 async fn get_servicer_services() -> Result<Vec<String>, std::io::Error> {
     let folder_path = "/etc/systemd/system/";
 

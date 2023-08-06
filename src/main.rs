@@ -13,8 +13,6 @@ use crate::handlers::handle_show_status::handle_show_status;
 use crate::handlers::handle_start_service::handle_start_service;
 use crate::handlers::handle_stop_service::handle_stop_service;
 
-pub const TOOL_NAME: &str = "servicer";
-
 /// servicer process manager
 #[derive(Parser, Debug)]
 #[command(author, about, version)]
@@ -54,11 +52,11 @@ pub enum Commands {
         #[arg(short, long)]
         interpreter: Option<String>,
 
-        /// Optional environment variables. To run `FOO=BAR node index.js` call `servicer create index.js --env_vars "FOO=BAR"`
+        /// Optional environment variables. To run `FOO=BAR node index.js` call `ser create index.js --env_vars "FOO=BAR"`
         #[arg(short = 'v', long)]
         env_vars: Option<String>,
 
-        /// Optional args passed to the file. Eg. to run `node index.js --foo bar` call `servicer create index.js -- --foo bar`
+        /// Optional args passed to the file. Eg. to run `node index.js --foo bar` call `ser create index.js -- --foo bar`
         #[arg(last = true)]
         internal_args: Vec<String>,
     },

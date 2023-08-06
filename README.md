@@ -61,11 +61,11 @@ sudo ser create ./index.js --env-vars "FOO=BAR GG=WP"
 sudo ser create ./index.js --auto-restart
 ```
 
-- This creates a service file in `etc/systemd/system/hello-world.servicer.service`. You must follow up with `start` and `enable` commands to start the service.
+- This creates a service file in `etc/systemd/system/hello-world.ser.service`. You must follow up with `start` and `enable` commands to start the service.
 
 - Servicer auto-detects the interpreter for `node` and `python` from $PATH available to the sudo user. You must manually provide the interpeter for other platforms using the interpreter flag, eg. `--interpreter conda`. If the interpreter is not found in sudo $PATH, run `which conda` and paste the absolute path.
 
-- You can write your own service files and manage them with `servicer`. Simply rename file to end with `.servicer.service` instead of `.service`.
+- You can write your own service files and manage them with `servicer`. Simply rename file to end with `.ser.service` instead of `.service`.
 
 
 #### Docs
