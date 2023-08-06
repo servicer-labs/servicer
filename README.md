@@ -37,28 +37,28 @@ Run `--help` to display tooltip. Note that `sudo` mode is needed for all command
 
 ```sh
 # Create a service for index.js
-sudo ser create ./index.js
+sudo ser create index.js
 
 # Create service, start and enable on boot
-sudo ser create ./index.js --start --enable
+sudo ser create index.js --start --enable
 
 # Create a service for a binary
-sudo ser create ./awesome-binary
+sudo ser create awesome-binary
 
 # Custom interpreter
-sudo ser create ./hello-typescript.ts --interpreter /home/hp/.config/nvm/versions/node/v20.1.0/bin/ts-node
+sudo ser create hello-typescript.ts --interpreter /home/hp/.config/nvm/versions/node/v20.1.0/bin/ts-node
 
 # Custom name
-sudo ser create ./index.js --name hello-world
+sudo ser create index.js --name hello-world
 
 # Pass params to index.js by adding them after a `--` followed by space
-sudo ser create ./index.js -- --foo bar
+sudo ser create index.js -- --foo bar
 
 # Pass env variables
-sudo ser create ./index.js --env-vars "FOO=BAR GG=WP"
+sudo ser create index.js --env-vars "FOO=BAR GG=WP"
 
 # Enable auto-restart on exit
-sudo ser create ./index.js --auto-restart
+sudo ser create index.js --auto-restart
 ```
 
 - This creates a service file in `etc/systemd/system/hello-world.ser.service`. You must follow up with `start` and `enable` commands to start the service.

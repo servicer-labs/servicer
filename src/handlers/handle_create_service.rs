@@ -60,7 +60,13 @@ pub async fn handle_create_service(
             None => get_interpreter(path.extension()),
         };
 
-        let working_directory = fs::canonicalize(path.parent().unwrap())
+        // Handle case `ser create index.js` where relative path lacks ./
+        let mut parent_path = path.parent().unwrap();
+        let current_dir = env::current_dir().unwrap();
+        if parent_path.to_str() == Some("") {
+            parent_path = &current_dir;
+        }
+        let working_directory = fs::canonicalize(parent_path)
             .await
             .unwrap()
             .to_str()
