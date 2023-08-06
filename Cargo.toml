@@ -1,8 +1,8 @@
 [package]
 name = "servicer"
 authors = ["secretshardul <aeershardul@gmail.com>"]
-description = "A modern and daemonless process manager"
-version = "0.1.0"
+description = "A systemd based, daemonless process manager for production. Manage and monitor services with a pm2 style CLI."
+version = "0.1.1"
 edition = "2021"
 license = "MIT"
 homepage = "https://servicer.dev"
