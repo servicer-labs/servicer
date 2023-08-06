@@ -7,6 +7,7 @@ edition = "2021"
 license = "MIT"
 homepage = "https://servicer.dev"
 repository = "https://github.com/servicer-labs/servicer-cli"
+keywords = ["systemd", "dbus", "service", "process"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
