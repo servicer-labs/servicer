@@ -28,34 +28,55 @@ A dbus service has 3 parts:
 
 
 ```sh
+# View status
+busctl get-property org.freedesktop.systemd1 /org/freedesktop/systemd1/unit/hello_2dworld_2establed_2eservice org.freedesktop.systemd1.Unit ActiveState LoadState UnitFileState
+
+# UnitFileState - enabled / disabled
+
 # Start
-## ss is the signature, i.e. two strings must be passed.
-busctl call \
+sudo busctl call \
   org.freedesktop.systemd1 \
   /org/freedesktop/systemd1 \
   org.freedesktop.systemd1.Manager \
   StartUnit ss \
-  "hello.service" \
+  "hello-world.stabled.service" \
   "replace"
 
+# Stop
+sudo busctl call \
+  org.freedesktop.systemd1 \
+  /org/freedesktop/systemd1 \
+  org.freedesktop.systemd1.Manager \
+  StopUnit ss \
+  "hello-world.stabled.service" \
+  "replace"
+
+# Enable- pass full path
+sudo busctl call \
+  org.freedesktop.systemd1 \
+  /org/freedesktop/systemd1 \
+  org.freedesktop.systemd1.Manager \
+  EnableUnitFiles "asbb" \
+  1 "/etc/systemd/system/hello-world.stabled.service" \
+  false \
+  true
+
+# Disable service
+sudo busctl call \
+  org.freedesktop.systemd1 \
+  /org/freedesktop/systemd1 \
+  org.freedesktop.systemd1.Manager \
+  DisableUnitFiles "asb" \
+  1 "hello-world.stabled.service" \
+  false
+
+# Reload manager so that `UnitFileState` updates. The service continues to run without pause.
 busctl call \
   org.freedesktop.systemd1 \
   /org/freedesktop/systemd1 \
   org.freedesktop.systemd1.Manager \
-  GetDefaultTarget
+  Reload
 
-# Scripts to read PID, RAM and other details are in the next section
-sudo systemctl list-units > list-units.txt
-
-busctl call org.freedesktop.systemd1 /org/freedesktop/systemd1 org.freedesktop.systemd1.Manager ListUnits
-
-#TODO find equivalent of `systemctl show`. The below scripts don't work
-
-# Get status of hello-world, equivalent of `sudo systemctl status hello-world.stabled`
-busctl get-property org.freedesktop.systemd1 /org/freedesktop/systemd1/unit/hello_2dworld_2establed_2eservice org.freedesktop.systemd1.Unit ActiveState
-
-
-# Stop
 ```
 
 - `ListUnits` output for hello-world

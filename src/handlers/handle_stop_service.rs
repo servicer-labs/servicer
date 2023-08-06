@@ -1,4 +1,7 @@
-use crate::utils::{service_names::get_full_service_name, systemd::ManagerProxy};
+use crate::{
+    handlers::handle_show_status::handle_show_status,
+    utils::{service_names::get_full_service_name, systemd::ManagerProxy},
+};
 
 /// Stops a service
 ///
@@ -17,7 +20,7 @@ pub async fn handle_stop_service(name: String) -> Result<(), Box<dyn std::error:
 
     println!("Stopped {name}");
 
-    // handle_show_status().unwrap();
+    handle_show_status().await.unwrap();
 
     Ok(())
 }

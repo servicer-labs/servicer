@@ -26,6 +26,18 @@ pub trait Manager {
         runtime: bool,
         force: bool,
     ) -> zbus::Result<(bool, Vec<(String, String, String)>)>;
+
+    /// [📖](https://www.freedesktop.org/software/systemd/man/systemd.directives.html#DisableUnitFiles()) Call interface method `DisableUnitFiles`.
+    #[dbus_proxy(name = "DisableUnitFiles")]
+    fn disable_unit_files(
+        &self,
+        files: Vec<String>,
+        runtime: bool,
+    ) -> zbus::Result<Vec<(String, String, String)>>;
+
+    /// [📖](https://www.freedesktop.org/software/systemd/man/systemd.directives.html#Reload()) Call interface method `Reload`.
+    #[dbus_proxy(name = "Reload")]
+    fn reload(&self) -> zbus::Result<()>;
 }
 
 /// Proxy object for `org.freedesktop.systemd1.Unit`.

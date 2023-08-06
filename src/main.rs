@@ -6,6 +6,8 @@ mod handlers;
 mod utils;
 
 use crate::handlers::handle_create_service::handle_create_service;
+use crate::handlers::handle_disable_service::handle_disable_service;
+use crate::handlers::handle_enable_service::handle_enable_service;
 use crate::handlers::handle_show_logs::handle_show_logs;
 use crate::handlers::handle_show_status::handle_show_status;
 use crate::handlers::handle_start_service::handle_start_service;
@@ -57,18 +59,28 @@ pub enum Commands {
     Start {
         /// The service name, eg. hello-world
         name: String,
-
-        /// Enable the service to start at boot. Equivalent to `systemctl enable`. Can enable a running service.
-        #[arg(short, long)]
-        enable_on_boot: bool,
     },
-    // TODO separate enable command
     /// Stop a service
     #[command(arg_required_else_help = true)]
     Stop {
         /// The service name, eg. hello-world
         name: String,
     },
+
+    /// Enable a service to start on boot. Doesn't immediately start the service. To do so use the `start` command.
+    #[command(arg_required_else_help = true)]
+    Enable {
+        /// The service name, eg. hello-world
+        name: String,
+    },
+
+    /// Disable a service from starting on boot
+    #[command(arg_required_else_help = true)]
+    Disable {
+        /// The service name, eg. hello-world
+        name: String,
+    },
+
     /// View the status of your services
     #[command()]
     Status {},
@@ -112,12 +124,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await
         .unwrap(),
 
-        Commands::Start {
-            name,
-            enable_on_boot,
-        } => handle_start_service(name, enable_on_boot).await.unwrap(),
+        Commands::Start { name } => handle_start_service(name).await.unwrap(),
 
         Commands::Stop { name } => handle_stop_service(name).await.unwrap(),
+
+        Commands::Enable { name } => handle_enable_service(name).await.unwrap(),
+
+        Commands::Disable { name } => handle_disable_service(name).await.unwrap(),
 
         Commands::Status {} => handle_show_status().await.unwrap(),
 
