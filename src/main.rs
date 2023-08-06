@@ -13,11 +13,11 @@ use crate::handlers::handle_show_status::handle_show_status;
 use crate::handlers::handle_start_service::handle_start_service;
 use crate::handlers::handle_stop_service::handle_stop_service;
 
-pub const TOOL_NAME: &str = "stabled";
+pub const TOOL_NAME: &str = "servicer";
 
-/// stabled process manager
+/// servicer process manager
 #[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
+#[command(author, about, version)]
 struct Args {
     #[command(subcommand)]
     command: Commands,
@@ -41,15 +41,15 @@ pub enum Commands {
         auto_restart: bool,
 
         /// Optional custom interpreter. Input can be the executable's name, eg `python3` or the full path
-        /// `usr/bin/python3`. If no input is provided stabled will use the file extension to detect the interpreter.
+        /// `usr/bin/python3`. If no input is provided servicer will use the file extension to detect the interpreter.
         #[arg(short, long)]
         interpreter: Option<String>,
 
-        /// Optional environment variables. To run `FOO=BAR node index.js` call `stabled create index.js --env_vars "FOO=BAR"`
+        /// Optional environment variables. To run `FOO=BAR node index.js` call `servicer create index.js --env_vars "FOO=BAR"`
         #[arg(short, long)]
         env_vars: Option<String>,
 
-        /// Optional args passed to the file. Eg. to run `node index.js --foo bar` call `stabled create index.js -- --foo bar`
+        /// Optional args passed to the file. Eg. to run `node index.js --foo bar` call `servicer create index.js -- --foo bar`
         #[arg(last = true)]
         internal_args: Vec<String>,
     },

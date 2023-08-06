@@ -30,7 +30,7 @@ pub async fn handle_disable_service(name: String) -> Result<(), Box<dyn std::err
 /// # Arguments
 ///
 /// * `manager_proxy`: Blocking Manager proxy object
-/// * `full_service_name`: Full name of the service, having '.stabled.service' at the end
+/// * `full_service_name`: Full name of the service, having '.servicer.service' at the end
 ///
 async fn disable_service(manager_proxy: &ManagerProxy<'_>, full_service_name: &String) {
     manager_proxy

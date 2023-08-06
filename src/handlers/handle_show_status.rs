@@ -17,7 +17,7 @@ pub struct ServiceStatus {
     /// Process ID
     pub pid: u32,
 
-    /// The short service name, excluding '.stabled.service'
+    /// The short service name, excluding '.servicer.service'
     pub name: String,
 
     /// Active state
@@ -38,14 +38,14 @@ pub struct ServiceStatus {
 /// Display the status of your services
 pub async fn handle_show_status() -> Result<(), Box<dyn std::error::Error>> {
     let page_size = get_page_size().await;
-    let stabled_service_names = get_stabled_services().await.unwrap();
+    let services = get_servicer_services().await.unwrap();
 
     let connection = Connection::system().await?;
 
     let mut active_process_exists = true;
     let mut service_statuses: Vec<ServiceStatus> = vec![];
 
-    for name in stabled_service_names {
+    for name in services {
         let active = get_active_state(&connection, &name).await;
 
         let unit_state = get_unit_file_state(&connection, &name).await;
@@ -103,8 +103,8 @@ pub async fn handle_show_status() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-/// Get systemd services having an extension `.stabled.service`. We only monitor services created by this tool
-async fn get_stabled_services() -> Result<Vec<String>, std::io::Error> {
+/// Get systemd services having an extension `.servicer.service`. We only monitor services created by this tool
+async fn get_servicer_services() -> Result<Vec<String>, std::io::Error> {
     let folder_path = "/etc/systemd/system/";
 
     let folder_path = Path::new(folder_path);

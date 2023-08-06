@@ -1,8 +1,8 @@
 use crate::TOOL_NAME;
 
-/// Shortens the service name from `example.stabled.service` to `example`.
+/// Shortens the service name from `example.servicer.service` to `example`.
 ///
-/// Must externally check whether `.stabled.service` exists at the end otherwise this function
+/// Must externally check whether `.servicer.service` exists at the end otherwise this function
 /// will throw an error
 ///
 /// # Arguments
@@ -17,9 +17,9 @@ pub fn get_short_service_name(full_service_name: &str) -> String {
         .to_string()
 }
 
-/// Returns the full service name, ending with `.stabled.service`
+/// Returns the full service name, ending with `.servicer.service`
 ///
-/// Must externally ensure that `.stabled.service` is already not present.
+/// Must externally ensure that `.servicer.service` is already not present.
 ///
 /// # Arguments
 ///
@@ -29,7 +29,7 @@ pub fn get_full_service_name(short_name: &str) -> String {
     format!("{}.{}.service", short_name, TOOL_NAME)
 }
 
-/// Whether it is a full service name, i.e. ending with `stabled.service`
+/// Whether it is a full service name, i.e. ending with `servicer.service`
 ///
 /// # Arguments
 ///

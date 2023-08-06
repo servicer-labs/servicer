@@ -1,9 +1,12 @@
 [package]
-name = "stabled"
-author = "Stabled Labs"
-about = "ggwp"
+name = "servicer"
+authors = ["secretshardul <aeershardul@gmail.com>"]
+description = "A modern and daemonless process manager"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+homepage = "https://servicer.dev"
+repository = "https://github.com/servicer-labs/servicer-cli"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

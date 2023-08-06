@@ -9,7 +9,7 @@ use tokio::process::Command;
 ///
 /// # Arguments
 ///
-/// * `name`- Name of the service in short form (hello-world) or long form (hello-world.stabled.service).
+/// * `name`- Name of the service in short form (hello-world)
 /// * `follow` - Print logs
 ///
 pub async fn handle_show_logs(

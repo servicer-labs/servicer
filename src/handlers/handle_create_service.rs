@@ -105,11 +105,11 @@ fn get_interpreter(extension: Option<&std::ffi::OsStr>) -> Option<String> {
     }
 }
 
-/// Creates a systemd service file at `/etc/systemd/system/{}.stabled.service` and returns the unit name
+/// Creates a systemd service file at `/etc/systemd/system/{}.servicer.service` and returns the unit name
 ///
 /// # Arguments
 ///
-/// * `service_name`- Name of the service without '.stabled.service' in the end
+/// * `service_name`- Name of the service without '.servicer.service' in the end
 /// * `service_file_path` - Path where the service file will be written
 /// * `working_directory` - Working directory of the file to execute
 /// * `auto_restart` - Auto restart the service on error
