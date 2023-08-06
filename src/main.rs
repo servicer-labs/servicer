@@ -35,6 +35,15 @@ pub enum Commands {
         #[arg(short, long)]
         name: Option<String>,
 
+        /// Start the service
+        #[arg(short, long)]
+        start: bool,
+
+        /// Enable the service to start every time on boot. This doesn't immediately start the service, to do that run
+        /// together with `start
+        #[arg(short, long)]
+        enable: bool,
+
         /// Auto-restart on failure. Default false. You should edit the .service file for more advanced features.
         /// The service must be enabled for auto-restart to work.
         #[arg(short = 'r', long)]
@@ -46,7 +55,7 @@ pub enum Commands {
         interpreter: Option<String>,
 
         /// Optional environment variables. To run `FOO=BAR node index.js` call `servicer create index.js --env_vars "FOO=BAR"`
-        #[arg(short, long)]
+        #[arg(short = 'v', long)]
         env_vars: Option<String>,
 
         /// Optional args passed to the file. Eg. to run `node index.js --foo bar` call `servicer create index.js -- --foo bar`
@@ -109,6 +118,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Commands::Create {
             path,
             name,
+            start,
+            enable,
             auto_restart,
             interpreter,
             env_vars,
@@ -116,6 +127,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         } => handle_create_service(
             path,
             name,
+            start,
+            enable,
             auto_restart,
             interpreter,
             env_vars,
@@ -124,11 +137,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await
         .unwrap(),
 
-        Commands::Start { name } => handle_start_service(name).await.unwrap(),
+        Commands::Start { name } => handle_start_service(name, true).await.unwrap(),
 
         Commands::Stop { name } => handle_stop_service(name).await.unwrap(),
 
-        Commands::Enable { name } => handle_enable_service(name).await.unwrap(),
+        Commands::Enable { name } => handle_enable_service(name, true).await.unwrap(),
 
         Commands::Disable { name } => handle_disable_service(name).await.unwrap(),
 

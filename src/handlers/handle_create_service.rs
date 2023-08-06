@@ -6,7 +6,14 @@ use std::{
 use tokio::fs;
 use which::which;
 
-use crate::{utils::service_names::get_full_service_name, TOOL_NAME};
+use crate::{
+    handlers::{
+        handle_enable_service::handle_enable_service, handle_show_status::handle_show_status,
+        handle_start_service::handle_start_service,
+    },
+    utils::service_names::get_full_service_name,
+    TOOL_NAME,
+};
 
 /// Creates a new systemd service file.
 ///
@@ -21,6 +28,8 @@ use crate::{utils::service_names::get_full_service_name, TOOL_NAME};
 pub async fn handle_create_service(
     path: PathBuf,
     custom_name: Option<String>,
+    start: bool,
+    enable: bool,
     auto_restart: bool,
     custom_interpreter: Option<String>,
     env_vars: Option<String>,
@@ -74,7 +83,18 @@ pub async fn handle_create_service(
 
         println!("Service {service_name} created at {service_file_path}. To start run `{TOOL_NAME} start {service_name}`");
 
-        // TODO show status
+        if start {
+            handle_start_service(service_name.clone(), false)
+                .await
+                .unwrap();
+        }
+        if enable {
+            handle_enable_service(service_name.clone(), false)
+                .await
+                .unwrap();
+        }
+
+        handle_show_status().await.unwrap();
     }
 
     Ok(())

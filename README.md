@@ -24,11 +24,74 @@ Currently servicer supports Linux. Systemd must be installed on the system. MacO
 
 ```sh
 cargo install servicer
+
+# Create a symlink to use the short name `ser`. We can now access servicer in sudo mode
+sudo ln -s /home/your_username/.cargo/bin/servicer /usr/bin/ser
 ```
 
 ## Usage
 
-1. Create service
+Run `--help` to display tooltip. Note that `sudo` mode is needed for all commands except `status`.
+
+### 1. Create service
+
+```sh
+# Create a service for index.js
+sudo ser create ./index.js
+
+# Create service, start and enable on boot
+sudo ser create ./index.js --start --enable
+
+# Create a service for a binary
+sudo ser create ./awesome-binary
+
+# Custom interpreter
+sudo ser create ./hello-typescript.ts --interpreter /home/hp/.config/nvm/versions/node/v20.1.0/bin/ts-node
+
+# Custom name
+sudo ser create ./index.js --name hello-world
+
+# Pass params to index.js by adding them after a `--` followed by space
+sudo ser create ./index.js -- --foo bar
+
+# Pass env variables
+sudo ser create ./index.js --env-vars "FOO=BAR GG=WP"
+
+# Enable auto-restart on exit
+sudo ser create ./index.js --auto-restart
+```
+
+- This creates a service file in `etc/systemd/system/hello-world.servicer.service`. You must follow up with `start` and `enable` commands to start the service.
+
+- Servicer auto-detects the interpreter for `node` and `python` from $PATH available to the sudo user. You must manually provide the interpeter for other platforms using the interpreter flag, eg. `--interpreter conda`. If the interpreter is not found in sudo $PATH, run `which conda` and paste the absolute path.
+
+- You can write your own service files and manage them with `servicer`. Simply rename file to end with `.servicer.service` instead of `.service`.
+
+
+#### Docs
+
+```
+Usage: ser create [OPTIONS] <PATH> [-- <INTERNAL_ARGS>...]
+
+Arguments:
+  <PATH>              The file path
+  [INTERNAL_ARGS]...  Optional args passed to the file. Eg. to run `node index.js --foo bar` call `ser create index.js -- --foo bar`
+
+Options:
+  -n, --name <NAME>                Optional custom name for the service
+  -s, --start                      Start the service
+  -e, --enable                     Enable the service to start every time on boot. This doesn't immediately start the service, to do that run together with `start
+  -r, --auto-restart               Auto-restart on failure. Default false. You should edit the .service file for more advanced features. The service must be enabled for auto-restart to work
+  -i, --interpreter <INTERPRETER>  Optional custom interpreter. Input can be the executable's name, eg `python3` or the full path `usr/bin/python3`. If no input is provided servicer will use the file extension to detect the interpreter
+  -v, --env-vars <ENV_VARS>        Optional environment variables. To run `FOO=BAR node index.js` call `servicer create index.js --env_vars "FOO=BAR"`
+  -h, --help                       Print help
+```
+
+2. Start service
+
+```sh
+
+```
 
 ## Quirks
 

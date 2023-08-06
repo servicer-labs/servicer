@@ -7,7 +7,10 @@ use crate::utils::{service_names::get_full_service_name, systemd::ManagerProxy};
 ///
 /// * `name`- Name of the service to stop
 ///
-pub async fn handle_enable_service(name: String) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn handle_enable_service(
+    name: String,
+    show_status: bool,
+) -> Result<(), Box<dyn std::error::Error>> {
     let full_service_name = get_full_service_name(&name);
 
     let connection = zbus::Connection::system().await.unwrap();
@@ -20,7 +23,9 @@ pub async fn handle_enable_service(name: String) -> Result<(), Box<dyn std::erro
 
     println!("Enabled {name}");
 
-    handle_show_status().await.unwrap();
+    if show_status {
+        handle_show_status().await.unwrap();
+    }
 
     Ok(())
 }

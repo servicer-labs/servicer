@@ -11,7 +11,10 @@ use super::handle_show_status::handle_show_status;
 ///
 /// * `name` - The service name
 ///
-pub async fn handle_start_service(name: String) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn handle_start_service(
+    name: String,
+    show_status: bool,
+) -> Result<(), Box<dyn std::error::Error>> {
     let connection = zbus::Connection::system().await.unwrap();
     let manager_proxy = ManagerProxy::new(&connection).await.unwrap();
 
@@ -27,7 +30,9 @@ pub async fn handle_start_service(name: String) -> Result<(), Box<dyn std::error
         println!("service started: {start_service_result}");
     };
 
-    handle_show_status().await.unwrap();
+    if show_status {
+        handle_show_status().await.unwrap();
+    }
 
     Ok(())
 }
