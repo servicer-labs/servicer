@@ -6,7 +6,7 @@ version = "0.1.1"
 edition = "2021"
 license = "MIT"
 homepage = "https://servicer.dev"
-repository = "https://github.com/servicer-labs/servicer-cli"
+repository = "https://github.com/servicer-labs/servicer"
 keywords = ["systemd", "dbus", "service", "process"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -21,3 +21,4 @@ zbus = { version = "3.14.1", default-features = false, features = ["tokio"] }
 bytesize = "1.2.0"
 libc = "0.2.147"
 futures = "0.3.28"
+tempfile = "3.7.1"

@@ -12,6 +12,7 @@ use crate::handlers::handle_show_logs::handle_show_logs;
 use crate::handlers::handle_show_status::handle_show_status;
 use crate::handlers::handle_start_service::handle_start_service;
 use crate::handlers::handle_stop_service::handle_stop_service;
+use handlers::handle_edit_service_file::handle_edit_service_file;
 
 /// servicer process manager
 #[derive(Parser, Debug)]
@@ -59,6 +60,17 @@ pub enum Commands {
         /// Optional args passed to the file. Eg. to run `node index.js --foo bar` call `ser create index.js -- --foo bar`
         #[arg(last = true)]
         internal_args: Vec<String>,
+    },
+
+    /// Open a text editor to create or edit the .service file for a service
+    #[command(arg_required_else_help = true)]
+    Edit {
+        /// The service name, eg. hello-world
+        name: String,
+
+        /// Custom editor to use. Default nano
+        #[arg(short, long, default_value = "nano")]
+        editor: String,
     },
 
     /// Start a service
@@ -150,6 +162,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             lines,
             follow,
         } => handle_show_logs(name, lines, follow).await.unwrap(),
+
+        Commands::Edit { name, editor } => handle_edit_service_file(name, editor).await.unwrap(),
     }
 
     Ok(())
