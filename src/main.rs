@@ -5,14 +5,15 @@ use clap::{Parser, Subcommand};
 mod handlers;
 mod utils;
 
-use crate::handlers::handle_create_service::handle_create_service;
-use crate::handlers::handle_disable_service::handle_disable_service;
-use crate::handlers::handle_enable_service::handle_enable_service;
-use crate::handlers::handle_show_logs::handle_show_logs;
-use crate::handlers::handle_show_status::handle_show_status;
-use crate::handlers::handle_start_service::handle_start_service;
-use crate::handlers::handle_stop_service::handle_stop_service;
+use handlers::handle_create_service::handle_create_service;
+use handlers::handle_disable_service::handle_disable_service;
+use handlers::handle_enable_service::handle_enable_service;
+use handlers::handle_show_logs::handle_show_logs;
+use handlers::handle_show_status::handle_show_status;
+use handlers::handle_start_service::handle_start_service;
+use handlers::handle_stop_service::handle_stop_service;
 use handlers::handle_edit_service_file::handle_edit_service_file;
+use handlers::handle_cat_service_file::handle_cat_service_file;
 
 /// servicer process manager
 #[derive(Parser, Debug)]
@@ -105,7 +106,7 @@ pub enum Commands {
     Status {},
 
     /// View logs for a service
-    #[command()]
+    #[command(arg_required_else_help = true)]
     Logs {
         /// The service name
         name: String,
@@ -118,6 +119,13 @@ pub enum Commands {
         #[arg(short, long, default_value_t = false)]
         follow: bool,
     },
+
+    /// Display contents of the .service file of a service
+    #[command(arg_required_else_help = true)]
+    Cat {
+        /// The service name, eg hello-world
+        name: String,
+    }
 }
 
 #[tokio::main]
@@ -164,6 +172,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         } => handle_show_logs(name, lines, follow).await.unwrap(),
 
         Commands::Edit { name, editor } => handle_edit_service_file(name, editor).await.unwrap(),
+
+        Commands::Cat { name } => handle_cat_service_file(name).await.unwrap(),
     }
 
     Ok(())

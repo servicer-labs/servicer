@@ -43,7 +43,7 @@ pub async fn handle_edit_service_file(
                 service_file_path.to_str().unwrap()
             );
         } else {
-            println!("Edit operation canceled. No changes were saved.");
+            eprintln!("Edit operation canceled. No changes were saved.");
         }
     } else {
         // Write the template content to a temporary file
@@ -65,7 +65,7 @@ pub async fn handle_edit_service_file(
                 service_file_path.to_str().unwrap()
             );
         } else {
-            println!("Create operation canceled. No changes were saved.");
+            eprintln!("Create operation canceled. No changes were saved.");
         }
 
         // Remove the temporary file
