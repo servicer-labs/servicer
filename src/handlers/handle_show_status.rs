@@ -45,17 +45,17 @@ pub async fn handle_show_status() -> Result<(), Box<dyn std::error::Error>> {
     let mut active_process_exists = true;
     let mut service_statuses: Vec<ServiceStatus> = vec![];
 
-    for name in services {
-        let active = get_active_state(&connection, &name).await;
+    for full_service_name in services {
+        let active = get_active_state(&connection, &full_service_name).await;
 
-        let unit_state = get_unit_file_state(&connection, &name).await;
+        let unit_state = get_unit_file_state(&connection, &full_service_name).await;
         let enabled_on_boot = unit_state == "enabled" || unit_state == "enabled-runtime";
 
         // PID, CPU and memory is 0 for inactive and errored processes
         let (pid, cpu, memory) = if active == "active" {
             active_process_exists = true;
 
-            let pid = get_main_pid(&connection, &name).await.unwrap();
+            let pid = get_main_pid(&connection, &full_service_name).await.unwrap();
             let memory = get_memory_usage(pid, page_size as u64).await;
 
             (pid, 0f32, ByteSize(memory).to_string())
@@ -65,7 +65,7 @@ pub async fn handle_show_status() -> Result<(), Box<dyn std::error::Error>> {
 
         service_statuses.push(ServiceStatus {
             pid,
-            name: get_short_service_name(&name),
+            name: get_short_service_name(&full_service_name),
             active,
             enabled_on_boot,
             cpu,

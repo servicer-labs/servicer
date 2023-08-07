@@ -86,10 +86,7 @@ trait Service {
 /// * `full_service_name`: Full name of the service name with '.service' in the end
 ///
 pub async fn get_active_state(connection: &Connection, full_service_name: &String) -> String {
-    let object_path = format!(
-        "/org/freedesktop/systemd1/unit/{}",
-        encode_as_dbus_object_path(full_service_name)
-    );
+    let object_path = get_unit_path(full_service_name);
 
     match zvariant::ObjectPath::try_from(object_path) {
         Ok(path) => {
@@ -113,10 +110,7 @@ pub async fn get_active_state(connection: &Connection, full_service_name: &Strin
 /// * `full_service_name`: Full name of the service name with '.service' in the end
 ///
 pub async fn get_unit_file_state(connection: &Connection, full_service_name: &String) -> String {
-    let object_path = format!(
-        "/org/freedesktop/systemd1/unit/{}",
-        encode_as_dbus_object_path(full_service_name)
-    );
+    let object_path = get_unit_path(full_service_name);
 
     match zvariant::ObjectPath::try_from(object_path) {
         Ok(path) => {
@@ -141,10 +135,7 @@ pub async fn get_main_pid(
     connection: &Connection,
     full_service_name: &String,
 ) -> Result<u32, zbus::Error> {
-    let object_path = format!(
-        "/org/freedesktop/systemd1/unit/{}",
-        encode_as_dbus_object_path(full_service_name)
-    );
+    let object_path = get_unit_path(full_service_name);
 
     let validated_object_path = zvariant::ObjectPath::try_from(object_path).unwrap();
 
@@ -171,4 +162,17 @@ fn encode_as_dbus_object_path(input_string: &str) -> String {
             }
         })
         .collect()
+}
+
+/// Unit file path for a service
+///
+/// # Arguments
+///
+/// * `full_service_name`
+///
+pub fn get_unit_path(full_service_name: &str) -> String {
+    format!(
+        "/org/freedesktop/systemd1/unit/{}",
+        encode_as_dbus_object_path(full_service_name)
+    )
 }

@@ -1,8 +1,5 @@
 use indoc::formatdoc;
-use std::{
-    env,
-    path::{Path, PathBuf},
-};
+use std::{env, path::PathBuf};
 use tokio::fs;
 use which::which;
 
@@ -11,7 +8,7 @@ use crate::{
         handle_enable_service::handle_enable_service, handle_show_status::handle_show_status,
         handle_start_service::handle_start_service,
     },
-    utils::service_names::get_full_service_name,
+    utils::service_names::{get_full_service_name, get_service_file_path},
 };
 
 /// Creates a new systemd service file.
@@ -50,10 +47,16 @@ pub async fn handle_create_service(
     let full_service_name = get_full_service_name(&service_name);
 
     // Create file if it doesn't exist
-    let service_file_path = format!("/etc/systemd/system/{}", full_service_name.clone());
+    let service_file_path = get_service_file_path(&full_service_name);
+    let service_file_path_str = service_file_path.to_str().unwrap().to_string();
 
-    if Path::new(&service_file_path).exists() {
-        panic!("Service {service_name} already exists at {service_file_path}. Provide a custom name with --name or delete the existing service with `ser delete {service_name}");
+    if service_file_path.exists() {
+        panic!(
+            "Service {} already exists at {}. Provide a custom name with --name or delete the existing service with `ser delete {}",
+            service_name,
+            service_file_path_str,
+            service_name
+        );
     } else {
         let interpreter = match custom_interpreter {
             Some(_) => custom_interpreter,
@@ -75,7 +78,7 @@ pub async fn handle_create_service(
 
         create_service_file(
             &service_name,
-            &service_file_path,
+            &service_file_path_str,
             &working_directory,
             auto_restart,
             interpreter,
@@ -86,7 +89,7 @@ pub async fn handle_create_service(
         .await
         .unwrap();
 
-        println!("Service {service_name} created at {service_file_path}. To start run `ser start {service_name}`");
+        println!("Service {service_name} created at {service_file_path_str}. To start run `ser start {service_name}`");
 
         if start {
             handle_start_service(service_name.clone(), false)

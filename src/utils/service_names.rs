@@ -1,3 +1,5 @@
+use std::path::{Path, PathBuf};
+
 /// Shortens the service name from `example.ser.service` to `example`.
 ///
 /// Must externally check whether `.ser.service` exists at the end otherwise this function
@@ -37,4 +39,14 @@ pub fn is_full_name(name: &str) -> bool {
     let service_extension = format!(".ser.service");
 
     name.ends_with(&service_extension)
+}
+
+/// Get the path to a service file
+///
+/// # Arguments
+///
+/// * `full_service_name`
+///
+pub fn get_service_file_path(full_service_name: &str) -> PathBuf {
+    Path::new("/etc/systemd/system/").join(full_service_name)
 }

@@ -1,6 +1,6 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
-use crate::utils::service_names::get_full_service_name;
+use crate::utils::service_names::{get_full_service_name, get_service_file_path};
 use tempfile::Builder;
 use tokio::fs;
 use tokio::io::AsyncWriteExt;
@@ -32,7 +32,7 @@ pub async fn handle_edit_service_file(
     editor: String,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let full_service_name = get_full_service_name(&name);
-    let service_file_path = Path::new("/etc/systemd/system/").join(&full_service_name);
+    let service_file_path = get_service_file_path(&full_service_name);
 
     if service_file_path.exists() {
         let edit_success = edit_file(&editor, &service_file_path).await;
