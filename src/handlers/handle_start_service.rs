@@ -18,14 +18,14 @@ pub async fn handle_start_service(
     let connection = zbus::Connection::system().await.unwrap();
     let manager_proxy = ManagerProxy::new(&connection).await.unwrap();
 
-    let full_name = get_full_service_name(&name);
+    let full_service_name = get_full_service_name(&name);
 
-    let active_state = get_active_state(&connection, &full_name).await;
+    let active_state = get_active_state(&connection, &full_service_name).await;
 
     if active_state == "active" || active_state == "reloading" {
-        eprintln!("No-op. Service {full_name} is already {active_state}");
+        eprintln!("No-op. Service {full_service_name} is already {active_state}");
     } else {
-        let start_service_result = start_service(&manager_proxy, &full_name).await;
+        let start_service_result = start_service(&manager_proxy, &full_service_name).await;
 
         println!("service started: {start_service_result}");
     };
