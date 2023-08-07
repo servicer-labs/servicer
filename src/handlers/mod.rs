@@ -1,4 +1,5 @@
 pub mod handle_create_service;
+pub mod handle_delete_service;
 pub mod handle_disable_service;
 pub mod handle_edit_service_file;
 pub mod handle_enable_service;

@@ -6,6 +6,7 @@ mod handlers;
 mod utils;
 
 use handlers::handle_create_service::handle_create_service;
+use handlers::handle_delete_service::handle_delete_service;
 use handlers::handle_disable_service::handle_disable_service;
 use handlers::handle_edit_service_file::handle_edit_service_file;
 use handlers::handle_enable_service::handle_enable_service;
@@ -102,6 +103,13 @@ pub enum Commands {
         name: String,
     },
 
+    /// Delete a service, stopping and disabling it if necessary and removing the .service file (alias: rm)
+    #[command(arg_required_else_help = true, alias = "rm")]
+    Delete {
+        /// The service name, eg. hello-world
+        name: String,
+    },
+
     /// View the status of your services (alias: ls)
     #[command(alias = "ls")]
     Status {},
@@ -165,11 +173,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         Commands::Start { name } => handle_start_service(name, true).await.unwrap(),
 
-        Commands::Stop { name } => handle_stop_service(name).await.unwrap(),
+        Commands::Stop { name } => handle_stop_service(name, true).await.unwrap(),
 
         Commands::Enable { name } => handle_enable_service(name, true).await.unwrap(),
 
-        Commands::Disable { name } => handle_disable_service(name).await.unwrap(),
+        Commands::Disable { name } => handle_disable_service(name, true).await.unwrap(),
 
         Commands::Status {} => handle_show_status().await.unwrap(),
 
@@ -184,6 +192,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Commands::Cat { name } => handle_print_service_file(name).await.unwrap(),
 
         Commands::Which { name } => handle_print_paths(name).await.unwrap(),
+
+        Commands::Delete { name } => handle_delete_service(name).await.unwrap(),
     }
 
     Ok(())
