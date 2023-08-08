@@ -37,7 +37,10 @@ Currently servicer supports Linux. Systemd must be installed on the system. MacO
 ### Snap
 
 ```sh
-sudo snap install servicer
+sudo snap install servicer --classic
+
+# Create alias ser
+sudo snap alias servicer ser
 ```
 
 ### Cargo
