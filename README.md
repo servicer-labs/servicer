@@ -1,5 +1,9 @@
 # servicer: Simplify Service Management on systemd
 
+[![Crates.io](https://img.shields.io/crates/v/servicer?style=flat-square)](https://crates.io/crates/servicer)
+[![Crates.io](https://img.shields.io/crates/d/servicer?style=flat-square)](https://crates.io/crates/servicer)
+[![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE-MIT)
+
 `servicer` is a user-friendly Command Line Interface (CLI) tool designed to simplify service management on `systemd`, abstracting away the complexities of the systemd ecosystem. With an easy-to-use API comparable to popular tools like pm2, servicer empowers users to create, control, and manage services effortlessly.
 
 ## Key Features:
@@ -33,7 +37,7 @@ Currently servicer supports Linux. Systemd must be installed on the system. MacO
 ### Snap
 
 ```sh
-
+sudo snap install ser
 ```
 
 ### Cargo
@@ -42,7 +46,7 @@ Currently servicer supports Linux. Systemd must be installed on the system. MacO
 cargo install servicer
 
 # Create a symlink to use the short name `ser`. We can now access servicer in sudo mode
-sudo ln -s /home/your_username/.cargo/bin/servicer /usr/bin/ser
+sudo ln -s ~/.cargo/bin/servicer /usr/bin/ser
 ```
 
 ## Usage
@@ -138,7 +142,7 @@ sudo ser status
 +-------+-------------+--------+----------------+-------+--------+
 | pid   | name        | active | enable on boot | cpu % | memory |
 +-------+-------------+--------+----------------+-------+--------+
-| 24294 | hello-world | active | false          | 0     | 9.5 KB |
+| 24294 | index.js    | active | false          | 0     | 9.5 KB |
 +-------+-------------+--------+----------------+-------+--------+
 ```
 
@@ -197,7 +201,7 @@ Before using `servicer`, please review the MIT License and the lack of warranty 
 
 ## Acknowledgements
 
-We acknowledge all the packages and libraries used in the development of `servicer`. Their contributions have been invaluable in making this project possible.
+We acknowledge all the packages and libraries used in the development of `servicer`. Their contributions have been invaluable in making this project possible. Parts of the README and codebase are generated with ChatGPT.
 
 ## Contribution and support
 
