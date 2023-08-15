@@ -34,13 +34,19 @@ Currently servicer supports Linux. Systemd must be installed on the system. MacO
 
 ## How do I install it?
 
-### Snap
+### Download binary
+
+Download the binary from the [release page](https://github.com/servicer-labs/servicer/releases/download/untagged-c0b6b746762b1456405a/servicer) for run `wget https://github.com/servicer-labs/servicer/releases/download/v0.1.2/servicer`. Then setup as
 
 ```sh
-sudo snap install servicer --classic
+# grant permissions
+chmod +rwx ./servicer
 
-# Create alias ser
-sudo snap alias servicer ser
+# Rename to ser and make it accessable from path
+sudo mv ./servicer /usr/bin/ser
+
+# This should work now
+ser --help
 ```
 
 ### Cargo
