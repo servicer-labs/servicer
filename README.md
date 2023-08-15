@@ -36,7 +36,7 @@ Currently servicer supports Linux. Systemd must be installed on the system. MacO
 
 ### Download binary
 
-Download the binary from the [release page](https://github.com/servicer-labs/servicer/releases/download/untagged-c0b6b746762b1456405a/servicer) for run `wget https://github.com/servicer-labs/servicer/releases/download/v0.1.2/servicer`. Then setup as
+Download the binary from the [release page](https://github.com/servicer-labs/servicer/releases/download/v0.1.2/servicer) for run `wget https://github.com/servicer-labs/servicer/releases/download/v0.1.2/servicer`. Then setup as
 
 ```sh
 # grant permissions
