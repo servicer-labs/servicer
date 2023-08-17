@@ -137,11 +137,10 @@ pub async fn get_main_pid(
 ) -> Result<u32, zbus::Error> {
     let object_path = get_unit_path(full_service_name);
 
-    let validated_object_path = zvariant::ObjectPath::try_from(object_path).unwrap();
+    let validated_object_path = zvariant::ObjectPath::try_from(object_path)?;
 
-    let service_proxy = ServiceProxy::new(connection, validated_object_path)
-        .await
-        .unwrap();
+    let service_proxy = ServiceProxy::new(connection, validated_object_path).await?;
+
     service_proxy.main_pid().await
 }
 

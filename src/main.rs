@@ -158,42 +158,43 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             interpreter,
             env_vars,
             internal_args,
-        } => handle_create_service(
-            path,
-            name,
-            start,
-            enable,
-            auto_restart,
-            interpreter,
-            env_vars,
-            internal_args,
-        )
-        .await
-        .unwrap(),
+        } => {
+            handle_create_service(
+                path,
+                name,
+                start,
+                enable,
+                auto_restart,
+                interpreter,
+                env_vars,
+                internal_args,
+            )
+            .await?
+        }
 
-        Commands::Start { name } => handle_start_service(name, true).await.unwrap(),
+        Commands::Start { name } => handle_start_service(name, true).await?,
 
-        Commands::Stop { name } => handle_stop_service(name, true).await.unwrap(),
+        Commands::Stop { name } => handle_stop_service(name, true).await?,
 
-        Commands::Enable { name } => handle_enable_service(name, true).await.unwrap(),
+        Commands::Enable { name } => handle_enable_service(name, true).await?,
 
-        Commands::Disable { name } => handle_disable_service(name, true).await.unwrap(),
+        Commands::Disable { name } => handle_disable_service(name, true).await?,
 
-        Commands::Status {} => handle_show_status().await.unwrap(),
+        Commands::Status {} => handle_show_status().await?,
 
         Commands::Logs {
             name,
             lines,
             follow,
-        } => handle_show_logs(name, lines, follow).await.unwrap(),
+        } => handle_show_logs(name, lines, follow).await?,
 
-        Commands::Edit { name, editor } => handle_edit_service_file(name, editor).await.unwrap(),
+        Commands::Edit { name, editor } => handle_edit_service_file(name, editor).await?,
 
-        Commands::Cat { name } => handle_print_service_file(name).await.unwrap(),
+        Commands::Cat { name } => handle_print_service_file(name).await?,
 
-        Commands::Which { name } => handle_print_paths(name).await.unwrap(),
+        Commands::Which { name } => handle_print_paths(name).await?,
 
-        Commands::Delete { name } => handle_delete_service(name).await.unwrap(),
+        Commands::Delete { name } => handle_delete_service(name).await?,
     }
 
     Ok(())

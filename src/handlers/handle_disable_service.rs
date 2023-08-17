@@ -13,18 +13,18 @@ pub async fn handle_disable_service(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let full_service_name = get_full_service_name(&name);
 
-    let connection = zbus::Connection::system().await.unwrap();
-    let manager_proxy = ManagerProxy::new(&connection).await.unwrap();
+    let connection = zbus::Connection::system().await?;
+    let manager_proxy = ManagerProxy::new(&connection).await?;
 
     disable_service(&manager_proxy, &full_service_name).await;
 
     // Reload necessary for UnitFileState to update
-    manager_proxy.reload().await.unwrap();
+    manager_proxy.reload().await?;
 
     println!("Disabled {name}");
 
     if show_status {
-        handle_show_status().await.unwrap();
+        handle_show_status().await?;
     }
 
     Ok(())

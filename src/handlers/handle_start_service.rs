@@ -15,8 +15,8 @@ pub async fn handle_start_service(
     name: String,
     show_status: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let connection = zbus::Connection::system().await.unwrap();
-    let manager_proxy = ManagerProxy::new(&connection).await.unwrap();
+    let connection = zbus::Connection::system().await?;
+    let manager_proxy = ManagerProxy::new(&connection).await?;
 
     let full_service_name = get_full_service_name(&name);
 
@@ -31,7 +31,7 @@ pub async fn handle_start_service(
     };
 
     if show_status {
-        handle_show_status().await.unwrap();
+        handle_show_status().await?;
     }
 
     Ok(())

@@ -4,15 +4,15 @@ use tokio::{
 };
 
 /// Gets the kernel page size of the system in KB
-pub async fn get_page_size() -> usize {
+pub async fn get_page_size() -> Result<usize, Box<dyn std::error::Error>> {
     let path = "/proc/self/smaps";
-    let file = File::open(path).await.unwrap();
+    let file = File::open(path).await?;
     let reader = BufReader::new(file);
 
     let mut kernel_page_size: Option<usize> = None;
 
     let mut lines = reader.lines();
-    while let Some(line) = lines.next_line().await.unwrap() {
+    while let Some(line) = lines.next_line().await? {
         if line.starts_with("KernelPageSize:") {
             if let Some(size_str) = line.split_whitespace().nth(1) {
                 if let Ok(size) = size_str.parse::<usize>() {
@@ -23,7 +23,7 @@ pub async fn get_page_size() -> usize {
         }
     }
 
-    kernel_page_size.unwrap()
+    kernel_page_size.ok_or_else(|| format!("can't find KernelPageSize from {}", path).into())
 }
 
 /// Gets the memory used by a process in KB
@@ -35,11 +35,11 @@ pub async fn get_page_size() -> usize {
 /// * `pid` - Process ID
 /// * `page_size` - The page size in KB
 ///
-pub async fn get_memory_usage(pid: u32, page_size_kb: u64) -> u64 {
+pub async fn get_memory_usage(pid: u32, page_size_kb: u64) -> Result<u64, std::io::Error> {
     let path = format!("/proc/{}/statm", pid);
-    let mut file = File::open(&path).await.unwrap();
+    let mut file = File::open(&path).await?;
     let mut contents = String::new();
-    file.read_to_string(&mut contents).await.unwrap();
+    file.read_to_string(&mut contents).await?;
 
     let values: Vec<&str> = contents.trim().split_whitespace().collect();
     if values.len() < 2 {
@@ -49,7 +49,7 @@ pub async fn get_memory_usage(pid: u32, page_size_kb: u64) -> u64 {
     let rss_pages: u64 = values[1].parse().unwrap_or(0);
     let shared_pages: u64 = values[2].parse().unwrap_or(0);
 
-    (rss_pages - shared_pages) * page_size_kb
+    Ok((rss_pages - shared_pages) * page_size_kb)
 }
 
 /// Gets the CPU time of a process

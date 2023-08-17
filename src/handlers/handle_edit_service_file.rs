@@ -35,7 +35,7 @@ pub async fn handle_edit_service_file(
     let service_file_path = get_service_file_path(&full_service_name);
 
     if service_file_path.exists() {
-        let edit_success = edit_file(&editor, &service_file_path).await;
+        let edit_success = edit_file(&editor, &service_file_path).await?;
 
         if edit_success {
             println!(
@@ -54,7 +54,7 @@ pub async fn handle_edit_service_file(
         file.write_all(SERVICE_TEMPLATE.as_bytes()).await?;
 
         // Prompt user to edit
-        let edit_success = edit_file(&editor, &temp_file_path).await;
+        let edit_success = edit_file(&editor, &temp_file_path).await?;
 
         if edit_success {
             // Copy the content of the temporary file to the target location
@@ -83,15 +83,14 @@ pub async fn handle_edit_service_file(
 /// * `editor`
 /// * `path`
 ///
-async fn edit_file(editor: &str, path: &PathBuf) -> bool {
-    let orig_mod_time = fs::metadata(path).await.unwrap().modified().unwrap();
+async fn edit_file(editor: &str, path: &PathBuf) -> Result<bool, std::io::Error> {
+    let orig_mod_time = fs::metadata(path).await?.modified()?;
     let edit_status = tokio::process::Command::new(&editor)
         .arg(path)
         .status()
-        .await
-        .unwrap();
+        .await?;
 
-    let edited_mod_time = fs::metadata(path).await.unwrap().modified().unwrap();
+    let edited_mod_time = fs::metadata(path).await?.modified()?;
 
-    edit_status.success() && orig_mod_time != edited_mod_time
+    Ok(edit_status.success() && orig_mod_time != edited_mod_time)
 }
