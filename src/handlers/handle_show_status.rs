@@ -141,7 +141,7 @@ pub async fn get_cpu_times(service_statuses: Vec<ServiceStatus>) -> Vec<u64> {
     futures::future::try_join_all(service_statuses.into_iter().map(|status| {
         tokio::spawn(async move {
             if status.active == "active" {
-                get_cpu_time(status.pid).await.unwrap()
+                get_cpu_time(status.pid).await.unwrap_or(0)
             } else {
                 0
             }
