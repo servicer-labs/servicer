@@ -1,0 +1,45 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "*"
+
+permissions:
+  contents: write
+
+jobs:
+  build_and_release:
+    name: Release ${{ matrix.platform.release_for }} binaries
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform:
+          - release_for: arm64
+            target: aarch64-unknown-linux-gnu
+            name: servicer-aarch64-linux
+          - release_for: amd64
+            target: x86_64-unknown-linux-gnu
+            name: servicer-amd64-linux
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Build binary
+        uses: houseabsolute/actions-rust-cross@v0
+        with:
+          target: ${{ matrix.platform.target }}
+          args: "--locked --release"
+      - name: Publish release artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: servicer-${{ matrix.platform.target }}
+          path: "target/${{ matrix.platform.target }}/release/servicer"
+      - name: Rename build artifact
+        run: |
+          cp target/${{ matrix.platform.target }}/release/servicer target/servicer-${{ matrix.platform.target }}
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ github.ref_name }}
+          files: "target/servicer-${{ matrix.platform.target }}"
