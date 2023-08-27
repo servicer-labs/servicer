@@ -18,6 +18,10 @@ pub trait Manager {
     #[dbus_proxy(name = "StopUnit")]
     fn stop_unit(&self, name: String, mode: String) -> zbus::Result<zvariant::OwnedObjectPath>;
 
+    /// [📖](https://www.freedesktop.org/software/systemd/man/systemd.directives.html#ReloadUnit()) Call interface method `ReloadUnit`.
+    #[dbus_proxy(name = "ReloadUnit")]
+    fn reload_unit(&self, name: String, mode: String) -> zbus::Result<zvariant::OwnedObjectPath>;
+
     /// [📖](https://www.freedesktop.org/software/systemd/man/systemd.directives.html#EnableUnitFiles()) Call interface method `EnableUnitFiles`.
     #[dbus_proxy(name = "EnableUnitFiles")]
     fn enable_unit_files(

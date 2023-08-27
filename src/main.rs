@@ -12,6 +12,7 @@ use handlers::handle_edit_service_file::handle_edit_service_file;
 use handlers::handle_enable_service::handle_enable_service;
 use handlers::handle_print_paths::handle_print_paths;
 use handlers::handle_print_service_file::handle_print_service_file;
+use handlers::handle_reload_service::handle_reload_service;
 use handlers::handle_show_logs::handle_show_logs;
 use handlers::handle_show_status::handle_show_status;
 use handlers::handle_start_service::handle_start_service;
@@ -129,6 +130,13 @@ pub enum Commands {
         follow: bool,
     },
 
+    /// Reloads a units configuration
+    #[command()]
+    Reload {
+        /// The service name
+        name: String,
+    },
+
     /// Display contents of the .service file of a service
     #[command(arg_required_else_help = true)]
     Cat {
@@ -188,6 +196,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         } => handle_show_logs(name, lines, follow).await.unwrap(),
 
         Commands::Edit { name, editor } => handle_edit_service_file(name, editor).await.unwrap(),
+
+        Commands::Reload { name } => handle_reload_service(name, true).await.unwrap(),
 
         Commands::Cat { name } => handle_print_service_file(name).await.unwrap(),
 
