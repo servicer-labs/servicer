@@ -17,14 +17,14 @@ pub async fn handle_stop_service(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let full_service_name = get_full_service_name(&name);
 
-    let connection = zbus::Connection::system().await.unwrap();
-    let manager_proxy = ManagerProxy::new(&connection).await.unwrap();
+    let connection = zbus::Connection::system().await?;
+    let manager_proxy = ManagerProxy::new(&connection).await?;
     stop_service(&manager_proxy, &full_service_name).await;
 
     println!("Stopped {name}");
 
     if show_status {
-        handle_show_status().await.unwrap();
+        handle_show_status().await?;
     }
 
     Ok(())

@@ -37,8 +37,8 @@ pub struct ServiceStatus {
 
 /// Display the status of your services
 pub async fn handle_show_status() -> Result<(), Box<dyn std::error::Error>> {
-    let page_size = get_page_size().await;
-    let services = get_servicer_services().await.unwrap();
+    let page_size = get_page_size().await?;
+    let services = get_servicer_services().await?;
 
     let connection = Connection::system().await?;
 
@@ -55,8 +55,8 @@ pub async fn handle_show_status() -> Result<(), Box<dyn std::error::Error>> {
         let (pid, cpu, memory) = if active == "active" {
             active_process_exists = true;
 
-            let pid = get_main_pid(&connection, &full_service_name).await.unwrap();
-            let memory = get_memory_usage(pid, page_size as u64).await;
+            let pid = get_main_pid(&connection, &full_service_name).await?;
+            let memory = get_memory_usage(pid, page_size as u64).await?;
 
             (pid, 0f32, ByteSize(memory).to_string())
         } else {
@@ -81,9 +81,9 @@ pub async fn handle_show_status() -> Result<(), Box<dyn std::error::Error>> {
 
     if active_process_exists {
         // We only need to sleep once with this method
-        let initial_cpu_times = get_cpu_times(service_statuses.clone()).await;
+        let initial_cpu_times = get_cpu_times(service_statuses.clone()).await?;
         tokio::time::sleep(tokio::time::Duration::from_millis(SLEEP_DURATION as u64)).await;
-        let final_cpu_times = get_cpu_times(service_statuses.clone()).await;
+        let final_cpu_times = get_cpu_times(service_statuses.clone()).await?;
 
         let tps = clock_ticks_per_second();
 
@@ -110,9 +110,9 @@ async fn get_servicer_services() -> Result<Vec<String>, std::io::Error> {
     let folder_path = Path::new(folder_path);
 
     let mut files = Vec::<String>::new();
-    let mut dir = fs::read_dir(folder_path).await.unwrap();
+    let mut dir = fs::read_dir(folder_path).await?;
 
-    while let Some(entry) = dir.next_entry().await.unwrap() {
+    while let Some(entry) = dir.next_entry().await? {
         let path = entry.path();
 
         if path.is_file() {
@@ -137,7 +137,9 @@ pub fn clock_ticks_per_second() -> u64 {
 ///
 /// * `service_statuses`
 ///
-pub async fn get_cpu_times(service_statuses: Vec<ServiceStatus>) -> Vec<u64> {
+pub async fn get_cpu_times(
+    service_statuses: Vec<ServiceStatus>,
+) -> Result<Vec<u64>, tokio::task::JoinError> {
     futures::future::try_join_all(service_statuses.into_iter().map(|status| {
         tokio::spawn(async move {
             if status.active == "active" {
@@ -148,5 +150,4 @@ pub async fn get_cpu_times(service_statuses: Vec<ServiceStatus>) -> Vec<u64> {
         })
     }))
     .await
-    .unwrap()
 }

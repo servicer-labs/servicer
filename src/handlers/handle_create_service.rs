@@ -43,7 +43,7 @@ pub async fn handle_create_service(
         .expect("Failed to stringify file name")
         .to_string();
 
-    let service_name = custom_name.unwrap_or(file_name.to_string());
+    let service_name = custom_name.unwrap_or_else(|| file_name.to_string());
     let full_service_name = get_full_service_name(&service_name);
 
     // Create file if it doesn't exist
@@ -102,7 +102,7 @@ pub async fn handle_create_service(
                 .unwrap();
         }
 
-        handle_show_status().await.unwrap();
+        handle_show_status().await?;
     }
 
     Ok(())

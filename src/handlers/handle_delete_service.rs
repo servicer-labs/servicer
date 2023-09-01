@@ -24,7 +24,7 @@ pub async fn handle_delete_service(name: String) -> Result<(), Box<dyn std::erro
 
     println!("Deleted {service_file_path_str}");
 
-    handle_show_status().await.unwrap();
+    handle_show_status().await?;
 
     Ok(())
 }
