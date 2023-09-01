@@ -5,7 +5,8 @@ use crate::{
 
 use super::handle_show_status::handle_show_status;
 
-/// Reloads a systemd service configuration.
+/// Reloads the unit of a failed service. The service state must be 'failed', otherwise the
+/// systemd dbus API throws an error.
 ///
 /// # Arguments
 ///
@@ -22,12 +23,11 @@ pub async fn handle_reload_service(
 
     let active_state = get_active_state(&connection, &full_service_name).await;
 
-    if active_state == "reloading" {
-        eprintln!("No-op. Service {full_service_name} is already {active_state}");
-    } else {
+    if active_state == "failed" {
         reload_service(&manager_proxy, &full_service_name).await;
-
         println!("service reloaded: {name}");
+    } else {
+        eprintln!("No-op. Service state of {full_service_name} is {active_state}");
     };
 
     if show_status {
@@ -37,11 +37,11 @@ pub async fn handle_reload_service(
     Ok(())
 }
 
-/// Reloads a service configuration
+/// Reloads the unit of a failed service
 ///
 /// # Arguments
 ///
-/// * `manager_proxy`: Blocking Manager proxy object
+/// * `manager_proxy`: Manager proxy object
 /// * `full_service_name`: Full name of the service, having '.ser.service' at the end
 ///
 async fn reload_service(manager_proxy: &ManagerProxy<'_>, full_service_name: &String) -> () {

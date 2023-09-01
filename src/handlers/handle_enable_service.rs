@@ -34,7 +34,7 @@ pub async fn handle_enable_service(
 ///
 /// # Arguments
 ///
-/// * `manager_proxy`: Blocking Manager proxy object
+/// * `manager_proxy`: Manager proxy object
 /// * `full_service_name`: Full name of the service, having '.ser.service' at the end
 ///
 async fn enable_service(

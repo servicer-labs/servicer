@@ -130,8 +130,8 @@ pub enum Commands {
         follow: bool,
     },
 
-    /// Reloads a units configuration
-    #[command()]
+    /// Reloads the unit of a failed service
+    #[command(arg_required_else_help = true)]
     Reload {
         /// The service name
         name: String,
