@@ -130,7 +130,7 @@ pub enum Commands {
         follow: bool,
     },
 
-    /// Reloads the unit of a failed service
+    /// Reloads a service having an `ExecScript`
     #[command(arg_required_else_help = true)]
     Reload {
         /// The service name

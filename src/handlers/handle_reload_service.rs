@@ -23,11 +23,11 @@ pub async fn handle_reload_service(
 
     let active_state = get_active_state(&connection, &full_service_name).await;
 
-    if active_state == "failed" {
+    if active_state == "reloading" {
+        eprintln!("No-op. Service {full_service_name} is already {active_state}");
+    } else {
         reload_service(&manager_proxy, &full_service_name).await;
         println!("service reloaded: {name}");
-    } else {
-        eprintln!("No-op. Service state of {full_service_name} is {active_state}");
     };
 
     if show_status {
@@ -48,5 +48,7 @@ async fn reload_service(manager_proxy: &ManagerProxy<'_>, full_service_name: &St
     manager_proxy
         .reload_unit(full_service_name.clone(), "replace".into())
         .await
-        .expect(&format!("Failed to reload service {full_service_name}"));
+        .expect(&format!(
+            "Failed to reload service {full_service_name}. Ensure it has an ExecReload statement"
+        ));
 }

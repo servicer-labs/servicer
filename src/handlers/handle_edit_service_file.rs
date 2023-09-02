@@ -16,6 +16,9 @@ Type=simple
 ExecStart=/path/to/your/command
 Restart=always
 
+# Add a reload script to enable the `reload` command
+# ExecReload=
+
 [Install]
 WantedBy=multi-user.target
 "#;
