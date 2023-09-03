@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 env:
-  PKG_CONFIG_PATH: "/usr/lib/arm-linux-gnueabihf/pkgconfig"
+  PKG_CONFIG_PATH: "/usr/lib/x86_64-linux-gnu/pkgconfig"
 
 jobs:
   build_and_release:
@@ -33,7 +33,6 @@ jobs:
           sudo apt-get install -y libssl-dev
           which openssl
           find /usr/ -name openssl.pc
-          export PKG_CONFIG_PATH=/usr/lib/arm-linux-gnueabihf/pkgconfig:$PKG_CONFIG_PATH
           echo $PKG_CONFIG_PATH
       - name: Build binary
         uses: houseabsolute/actions-rust-cross@v0
