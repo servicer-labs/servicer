@@ -8,6 +8,9 @@ on:
 permissions:
   contents: write
 
+env:
+  PKG_CONFIG_PATH: "/usr/lib/arm-linux-gnueabihf/pkgconfig"
+
 jobs:
   build_and_release:
     name: Release ${{ matrix.platform.release_for }} binaries
@@ -27,9 +30,11 @@ jobs:
         uses: actions/checkout@v3
       - name: Install OpenSSL
         run: |
-          which openssl
           sudo apt-get install -y libssl-dev
+          which openssl
+          find /usr/ -name openssl.pc
           export PKG_CONFIG_PATH=/usr/lib/arm-linux-gnueabihf/pkgconfig:$PKG_CONFIG_PATH
+          echo $PKG_CONFIG_PATH
       - name: Build binary
         uses: houseabsolute/actions-rust-cross@v0
         with:
