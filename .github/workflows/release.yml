@@ -15,19 +15,21 @@ jobs:
     strategy:
       matrix:
         platform:
-          - release_for: arm64
-            target: aarch64-unknown-linux-gnu
-            name: servicer-aarch64-linux
           - release_for: amd64
             target: x86_64-unknown-linux-gnu
             name: servicer-amd64-linux
+          - release_for: arm64
+            target: aarch64-unknown-linux-gnu
+            name: servicer-aarch64-linux
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Install OpenSSL
         run: |
-          sudo apt-get install -y openssl
+          which openssl
+          sudo apt-get install -y libssl-dev
+          export PKG_CONFIG_PATH=/usr/lib/arm-linux-gnueabihf/pkgconfig:$PKG_CONFIG_PATH
       - name: Build binary
         uses: houseabsolute/actions-rust-cross@v0
         with:
