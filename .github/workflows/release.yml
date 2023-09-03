@@ -8,9 +8,6 @@ on:
 permissions:
   contents: write
 
-env:
-  PKG_CONFIG_PATH: "/usr/lib/x86_64-linux-gnu/pkgconfig"
-
 jobs:
   build_and_release:
     name: Release ${{ matrix.platform.release_for }} binaries
@@ -28,12 +25,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Install OpenSSL
-        run: |
-          sudo apt-get install -y libssl-dev
-          which openssl
-          find /usr/ -name openssl.pc
-          echo $PKG_CONFIG_PATH
       - name: Build binary
         uses: houseabsolute/actions-rust-cross@v0
         with:
