@@ -1,14 +1,16 @@
 use indoc::formatdoc;
 use std::{env, path::PathBuf};
 use tokio::fs;
-use which::which;
 
 use crate::{
     handlers::{
         handle_enable_service::handle_enable_service, handle_show_status::handle_show_status,
         handle_start_service::handle_start_service,
     },
-    utils::service_names::{get_full_service_name, get_service_file_path},
+    utils::{
+        find_binary_path::find_binary_path,
+        service_names::{get_full_service_name, get_service_file_path},
+    },
 };
 
 /// Creates a new systemd service file.
@@ -162,17 +164,8 @@ async fn create_service_file(
         env::var("SUDO_USER").expect("Must be in sudo mode. ENV variable $SUDO_USER not found");
     let mut exec_start = match interpreter {
         Some(interpreter) => {
-            // Find full path of interpreter
-            // caveat- since this function is called in sudo mode, `node` and `python` paths must be
-            // readable in sudo. python3 works out of the box but nvm requires a hack.
-            let interpreter_path = which(&interpreter)
-                .expect(&format!("Could not find executable for {}", interpreter))
-                .to_str()
-                .expect(&format!(
-                    "Failed to stringify interpreter path for {}.",
-                    interpreter
-                ))
-                .to_string();
+            let interpreter_path = find_binary_path(&interpreter, &user).await.unwrap();
+            println!("got path {}", interpreter_path);
 
             format!("{} {}", interpreter_path, file_name)
         }

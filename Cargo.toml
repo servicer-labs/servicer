@@ -2,7 +2,7 @@
 name = "servicer"
 authors = ["Shardul Aeer <aeershardul@gmail.com>"]
 description = "Simplify Service Management on systemd"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2021"
 license = "MIT"
 homepage = "https://servicer.dev"
@@ -16,9 +16,10 @@ tokio = { version = "1.29.1", features = ["rt-multi-thread", "macros", "fs"] }
 clap = { version = "4.3.19", features = ["derive"] }
 cli-table = "0.4.7"
 indoc = "2.0.3"
-which = "4.4.0"
 zbus = { version = "3.14.1", default-features = false, features = ["tokio"] }
 bytesize = "1.2.0"
 libc = "0.2.147"
 futures = "0.3.28"
 tempfile = "3.7.1"
+regex = "1.9.4"
+checker = "0.0.3"
