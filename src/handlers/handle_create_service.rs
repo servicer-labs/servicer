@@ -164,7 +164,9 @@ async fn create_service_file(
         env::var("SUDO_USER").expect("Must be in sudo mode. ENV variable $SUDO_USER not found");
     let mut exec_start = match interpreter {
         Some(interpreter) => {
-            let interpreter_path = find_binary_path(&interpreter, &user).await.unwrap();
+            let interpreter_path = find_binary_path(&interpreter, &user).await.unwrap()
+                .trim_end_matches("\n").to_string();
+
             println!("got path {}", interpreter_path);
 
             format!("{} {}", interpreter_path, file_name)
