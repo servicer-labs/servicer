@@ -104,8 +104,8 @@ pub enum Commands {
         name: String,
     },
 
-    /// Delete a service, stopping and disabling it if necessary and removing the .service file (alias: rm)
-    #[command(arg_required_else_help = true, alias = "rm")]
+    /// Delete a service, stopping and disabling it if necessary and removing the .service file (alias: delete, rm, remove)
+    #[command(arg_required_else_help = true, alias = "rm", alias="remove")]
     Delete {
         /// The service name, eg. hello-world
         name: String,
