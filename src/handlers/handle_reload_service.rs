@@ -1,6 +1,9 @@
 use crate::{
     utils::service_names::get_full_service_name,
-    utils::systemd::{get_active_state, ManagerProxy},
+    utils::{
+        service_actions::reload_service,
+        systemd::{get_active_state, ManagerProxy},
+    },
 };
 
 use super::handle_show_status::handle_show_status;
@@ -13,7 +16,7 @@ use super::handle_show_status::handle_show_status;
 /// * `name` - The service name
 ///
 pub async fn handle_reload_service(
-    name: String,
+    name: &String,
     show_status: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let connection = zbus::Connection::system().await?;
@@ -35,20 +38,4 @@ pub async fn handle_reload_service(
     }
 
     Ok(())
-}
-
-/// Reloads the unit of a failed service
-///
-/// # Arguments
-///
-/// * `manager_proxy`: Manager proxy object
-/// * `full_service_name`: Full name of the service, having '.ser.service' at the end
-///
-async fn reload_service(manager_proxy: &ManagerProxy<'_>, full_service_name: &String) -> () {
-    manager_proxy
-        .reload_unit(full_service_name.clone(), "replace".into())
-        .await
-        .expect(&format!(
-            "Failed to reload service {full_service_name}. Ensure it has an ExecReload statement"
-        ));
 }

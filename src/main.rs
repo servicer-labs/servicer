@@ -13,6 +13,7 @@ use handlers::handle_enable_service::handle_enable_service;
 use handlers::handle_print_paths::handle_print_paths;
 use handlers::handle_print_service_file::handle_print_service_file;
 use handlers::handle_reload_service::handle_reload_service;
+use handlers::handle_rename_service::handle_rename_service;
 use handlers::handle_show_logs::handle_show_logs;
 use handlers::handle_show_status::handle_show_status;
 use handlers::handle_start_service::handle_start_service;
@@ -105,7 +106,7 @@ pub enum Commands {
     },
 
     /// Delete a service, stopping and disabling it if necessary and removing the .service file (alias: delete, rm, remove)
-    #[command(arg_required_else_help = true, alias = "rm", alias="remove")]
+    #[command(arg_required_else_help = true, alias = "rm", alias = "remove")]
     Delete {
         /// The service name, eg. hello-world
         name: String,
@@ -150,6 +151,16 @@ pub enum Commands {
         /// The service name, eg hello-world
         name: String,
     },
+
+    /// Renames a service. A running service will be restarted
+    #[command(arg_required_else_help = true, alias = "mv")]
+    Rename {
+        /// The service to rename
+        name: String,
+
+        /// The new name
+        new_name: String,
+    },
 }
 
 #[tokio::main]
@@ -180,13 +191,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .await?
         }
 
-        Commands::Start { name } => handle_start_service(name, true).await?,
+        Commands::Start { name } => handle_start_service(&name, true).await?,
 
-        Commands::Stop { name } => handle_stop_service(name, true).await?,
+        Commands::Stop { name } => handle_stop_service(&name, true).await?,
 
-        Commands::Enable { name } => handle_enable_service(name, true).await?,
+        Commands::Enable { name } => handle_enable_service(&name, true).await?,
 
-        Commands::Disable { name } => handle_disable_service(name, true).await?,
+        Commands::Disable { name } => handle_disable_service(&name, true).await?,
 
         Commands::Status {} => handle_show_status().await?,
 
@@ -194,17 +205,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             name,
             lines,
             follow,
-        } => handle_show_logs(name, lines, follow).await?,
+        } => handle_show_logs(&name, lines, follow).await?,
 
-        Commands::Edit { name, editor } => handle_edit_service_file(name, editor).await?,
+        Commands::Edit { name, editor } => handle_edit_service_file(&name, &editor).await?,
 
-        Commands::Reload { name } => handle_reload_service(name, true).await?,
+        Commands::Reload { name } => handle_reload_service(&name, true).await?,
 
-        Commands::Cat { name } => handle_print_service_file(name).await?,
+        Commands::Cat { name } => handle_print_service_file(&name).await?,
 
-        Commands::Which { name } => handle_print_paths(name).await?,
+        Commands::Which { name } => handle_print_paths(&name).await?,
 
-        Commands::Delete { name } => handle_delete_service(name).await?,
+        Commands::Delete { name } => handle_delete_service(&name, true).await?,
+
+        Commands::Rename { name, new_name } => handle_rename_service(&name, &new_name).await?,
     }
 
     Ok(())

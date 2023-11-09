@@ -21,10 +21,10 @@ pub struct PathStatus {
 ///
 /// * `name` - The service name
 ///
-pub async fn handle_print_paths(name: String) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn handle_print_paths(name: &String) -> Result<(), Box<dyn std::error::Error>> {
     let mut path_details = Vec::<PathStatus>::new();
 
-    let full_service_name = get_full_service_name(&name);
+    let full_service_name = get_full_service_name(name);
     let service_file_path = get_service_file_path(&full_service_name);
 
     if service_file_path.exists() {

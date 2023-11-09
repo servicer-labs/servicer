@@ -31,14 +31,14 @@ WantedBy=multi-user.target
 /// * `editor` - Name of editor. The editor must be visible in path
 ///
 pub async fn handle_edit_service_file(
-    name: String,
-    editor: String,
+    name: &String,
+    editor: &String,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let full_service_name = get_full_service_name(&name);
+    let full_service_name = get_full_service_name(name);
     let service_file_path = get_service_file_path(&full_service_name);
 
     if service_file_path.exists() {
-        let edit_success = edit_file(&editor, &service_file_path).await?;
+        let edit_success = edit_file(editor, &service_file_path).await?;
 
         if edit_success {
             println!(

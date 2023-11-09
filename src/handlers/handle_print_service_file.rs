@@ -8,7 +8,7 @@ use crate::utils::service_names::{get_full_service_name, get_service_file_path};
 ///
 /// * `name` - The service name
 ///
-pub async fn handle_print_service_file(name: String) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn handle_print_service_file(name: &String) -> Result<(), Box<dyn std::error::Error>> {
     let full_service_name = get_full_service_name(&name);
     let service_file_path = get_service_file_path(&full_service_name);
 

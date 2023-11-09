@@ -13,7 +13,7 @@ use tokio::process::Command;
 /// * `follow` - Print logs
 ///
 pub async fn handle_show_logs(
-    name: String,
+    name: &String,
     lines: u32,
     follow: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {

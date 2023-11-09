@@ -79,7 +79,6 @@ pub async fn handle_create_service(
             .to_string();
 
         create_service_file(
-            &service_name,
             &service_file_path_str,
             &working_directory,
             auto_restart,
@@ -94,14 +93,10 @@ pub async fn handle_create_service(
         println!("Service {service_name} created at {service_file_path_str}. To start run `ser start {service_name}`");
 
         if start {
-            handle_start_service(service_name.clone(), false)
-                .await
-                .unwrap();
+            handle_start_service(&service_name, false).await.unwrap();
         }
         if enable {
-            handle_enable_service(service_name.clone(), false)
-                .await
-                .unwrap();
+            handle_enable_service(&service_name, false).await.unwrap();
         }
 
         handle_show_status().await?;
@@ -150,7 +145,6 @@ fn get_interpreter(extension: Option<&std::ffi::OsStr>) -> Option<String> {
 /// * `file_name` - Name of the file to run
 ///
 async fn create_service_file(
-    service_name: &str,
     service_file_path: &str,
     working_directory: &str,
     auto_restart: bool,
@@ -164,8 +158,11 @@ async fn create_service_file(
         env::var("SUDO_USER").expect("Must be in sudo mode. ENV variable $SUDO_USER not found");
     let mut exec_start = match interpreter {
         Some(interpreter) => {
-            let interpreter_path = find_binary_path(&interpreter, &user).await.unwrap()
-                .trim_end_matches("\n").to_string();
+            let interpreter_path = find_binary_path(&interpreter, &user)
+                .await
+                .unwrap()
+                .trim_end_matches("\n")
+                .to_string();
 
             println!("got path {}", interpreter_path);
 
@@ -204,7 +201,6 @@ async fn create_service_file(
         r#"
       # Generated with Servicer
       [Unit]
-      Description=Servicer:{service_name}
       After=network.target
 
       [Service]

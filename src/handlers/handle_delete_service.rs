@@ -11,9 +11,12 @@ use super::{
 ///
 /// * `name`- Name of the service to stop
 ///
-pub async fn handle_delete_service(name: String) -> Result<(), Box<dyn std::error::Error>> {
-    handle_stop_service(name.clone(), false).await?;
-    handle_disable_service(name.clone(), false).await?;
+pub async fn handle_delete_service(
+    name: &String,
+    show_status: bool,
+) -> Result<(), Box<dyn std::error::Error>> {
+    handle_stop_service(&name, false).await?;
+    handle_disable_service(&name, false).await?;
 
     let full_service_name = get_full_service_name(&name);
     let service_file_path = get_service_file_path(&full_service_name);
@@ -24,7 +27,9 @@ pub async fn handle_delete_service(name: String) -> Result<(), Box<dyn std::erro
 
     println!("Deleted {service_file_path_str}");
 
-    handle_show_status().await?;
+    if show_status {
+        handle_show_status().await?;
+    }
 
     Ok(())
 }
