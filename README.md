@@ -45,6 +45,10 @@ chmod +rwx ./servicer
 # Rename to ser and make it accessable from path
 sudo mv ./servicer /usr/bin/ser
 
+# Important- symlink to node. Node must be visible to sudo user
+sudo ln -s $(which node) "/usr/local/bin/node"
+sudo ln -s $(which npm) "/usr/local/bin/npm"
+
 # This should work now
 ser --help
 ```
@@ -56,6 +60,10 @@ cargo install servicer
 
 # Create a symlink to use the short name `ser`. We can now access servicer in sudo mode
 sudo ln -s ~/.cargo/bin/servicer /usr/bin/ser
+
+# Important- symlink to node. Node must be visible to sudo user
+sudo ln -s $(which node) "/usr/local/bin/node"
+sudo ln -s $(which npm) "/usr/local/bin/npm"
 ```
 
 ## Usage
@@ -201,10 +209,10 @@ ser mv index.js hello-world
 
 1. nvm: `node` is unavailable in sudo mode. You must symlink `node` to the path available to sudo. Source- https://stackoverflow.com/a/40078875/7721443
 
-  ```sh
-  sudo ln -s "$NVM_DIR/versions/node/$(nvm version)/bin/node" "/usr/local/bin/node"
-  sudo ln -s "$NVM_DIR/versions/node/$(nvm version)/bin/npm" "/usr/local/bin/npm"
-  ```
+```sh
+sudo ln -s $(which node) "/usr/local/bin/node"
+sudo ln -s $(which npm) "/usr/local/bin/npm"
+```
 
 ## License
 
