@@ -136,7 +136,7 @@ sudo ser enable hello-world
 ### 6. Disable service
 
 ```sh
-sudo ser disale hello-world
+sudo ser disable hello-world
 ```
 
 ### 7. Delete service
