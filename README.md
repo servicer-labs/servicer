@@ -188,6 +188,14 @@ ser logs hello-world --follow
 ser cat hello-world
 ```
 
+### 13. Rename service
+
+```sh
+ser rename index.js hello-world
+
+# Or
+ser mv index.js hello-world
+```
 
 ## Quirks
 
