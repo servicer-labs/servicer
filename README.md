@@ -30,40 +30,49 @@
 
 ## Platform support
 
-Currently servicer supports Linux. Systemd must be installed on the system. MacOS (launchd) and Windows (SCM) support is planned.
+Currently servicer only supports systemd-based Linux. MacOS (launchd) and Windows (SCM) support is planned.
 
 ## How do I install it?
 
 ### Download binary
 
-Download the binary from the [release page](https://github.com/servicer-labs/servicer/releases/download/v0.1.2/servicer) for run `wget https://github.com/servicer-labs/servicer/releases/download/v0.1.2/servicer`. Then setup as
-
 ```sh
-# grant permissions
-chmod +rwx ./servicer
-
-# Rename to ser and make it accessable from path
-sudo mv ./servicer /usr/bin/ser
-
-# Important- symlink to node. Node must be visible to sudo user
-sudo ln -s $(which node) "/usr/local/bin/node"
-sudo ln -s $(which npm) "/usr/local/bin/npm"
-
-# This should work now
-ser --help
+sudo wget https://github.com/servicer-labs/servicer/releases/latest/download/servicer-x86_64-unknown-linux-gnu -O /usr/local/bin/servicer
+sudo chmod +x /usr/local/bin/servicer
 ```
 
 ### Cargo
 
 ```sh
 cargo install servicer
+```
 
-# Create a symlink to use the short name `ser`. We can now access servicer in sudo mode
-sudo ln -s ~/.cargo/bin/servicer /usr/bin/ser
+### AUR
 
-# Important- symlink to node. Node must be visible to sudo user
+On Arch Linux and derivatives (like Manjaro or EndavourOS), you can install one of the AUR packages:
+
+```sh
+# choose one
+paru -S servicer # stable, build from source
+paru -S servicer-bin # stable, from GitHub releases
+paru -S servicer-git # main branch, latest development version
+```
+
+### IMPORTANT FOR NVM USERS
+
+If you installed node with nvm, it isn’t visible to root. Fix this by symlinking node and npm to `/usr/local/bin`
+```sh
 sudo ln -s $(which node) "/usr/local/bin/node"
 sudo ln -s $(which npm) "/usr/local/bin/npm"
+```
+
+### Alias to ser
+
+If you want to type `ser` instead of `servicer`, add the following to your shell config file.
+```sh
+echo 'alias ser=servicer' >> ~/.bashrc # for bash
+echo 'alias ser=servicer' >> ~/.zshrc # for zsh
+echo 'alias ser=servicer' >> ~/.config/fish/config.fish # for fish
 ```
 
 ## Usage
@@ -98,9 +107,9 @@ sudo ser create index.js --env-vars "FOO=BAR GG=WP"
 sudo ser create index.js --auto-restart
 ```
 
-- This creates a service file in `etc/systemd/system/hello-world.ser.service`. You must follow up with `start` and `enable` commands to start the service.
+- This creates a service file in `/etc/systemd/system/hello-world.ser.service`. You must follow up with `start` and `enable` commands to start the service.
 
-- Servicer auto-detects the interpreter for `node` and `python` from $PATH available to the sudo user. You must manually provide the interpeter for other platforms using the interpreter flag, eg. `--interpreter conda`. If the interpreter is not found in sudo $PATH, run `which conda` and paste the absolute path.
+- Servicer auto-detects the interpreter for `node` and `python` from $PATH available to root. You must manually provide the interpreter for other platforms using the interpreter flag, eg. `--interpreter conda`. If the interpreter is not found in sudo $PATH, run `which conda` and paste the absolute path.
 
 - You can write your own service files and manage them with `servicer`. Simply rename file to end with `.ser.service` instead of `.service`.
 
@@ -203,15 +212,6 @@ ser rename index.js hello-world
 
 # Or
 ser mv index.js hello-world
-```
-
-## Quirks
-
-1. nvm: `node` is unavailable in sudo mode. You must symlink `node` to the path available to sudo. Source- https://stackoverflow.com/a/40078875/7721443
-
-```sh
-sudo ln -s $(which node) "/usr/local/bin/node"
-sudo ln -s $(which npm) "/usr/local/bin/npm"
 ```
 
 ## License
